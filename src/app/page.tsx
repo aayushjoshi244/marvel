@@ -1,65 +1,82 @@
-import Image from "next/image";
+import PosterCard from "@/components/PosterCard";
+import ContinueJourney from "@/components/ContinueJourney";
+
+const demo = [
+  { title: "Iron Man", badge: "FILM", posterSrc: "/posters/ironman.jpg", href: "/ironman" },
+  { title: "The Avengers", badge: "FILM", posterSrc: "/posters/avengers.jpg", href: "/avengers" },
+  { title: "Loki: Season 1", badge: "TV", posterSrc: "/posters/loki-s1.jpg", href: "/loki-s1" },
+  { title: "Spider-Man: Into the Spider-Verse", badge: "FILM", posterSrc: "/posters/spiderverse.jpg", href: "/spiderverse" },
+];
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-black text-white">
+      {/* background */}
+      <div className="pointer-events-none fixed inset-0 opacity-40">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,0,0,0.18),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.06),transparent_35%),radial-gradient(circle_at_50%_80%,rgba(255,0,0,0.10),transparent_45%)]" />
+      </div>
+
+      {/* hero */}
+      <section className="relative mx-auto max-w-6xl px-6 pt-16 pb-10">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70">
+          <span className="h-2 w-2 rounded-full bg-red-500" />
+          Recommended path: Chronological Timeline
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+
+        <h1 className="mt-6 text-4xl font-semibold leading-tight md:text-6xl">
+          Your Marvel watch journey,
+          <span className="block text-white/70">done properly.</span>
+        </h1>
+
+        <p className="mt-4 max-w-2xl text-base text-white/65">
+          Explore the MCU timeline, jump into Sagas, or hop universes in the Multiverse.
+          Posters, previews, and a clean “what’s next” flow.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
           <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/timeline"
+            className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 hover:bg-red-500 transition"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            Start Timeline
+          </a>
+          <a
+            href="/sagas"
+            className="rounded-xl border border-white/12 bg-white/5 px-5 py-3 text-sm font-semibold text-white/90 hover:bg-white/8 transition"
+          >
+            Explore Sagas
+          </a>
+          <a
+            href="/multiverse"
+            className="rounded-xl border border-white/12 bg-white/5 px-5 py-3 text-sm font-semibold text-white/90 hover:bg-white/8 transition"
+          >
+            Explore Multiverse
+          </a>
+        </div>
+      </section>
+
+      <ContinueJourney />
+      
+      {/* grid */}
+      <section className="relative mx-auto max-w-6xl px-6 pb-16">
+        <div className="mb-5 flex items-end justify-between">
+          <h2 className="text-lg font-semibold text-white/90">Featured</h2>
+          <span className="text-sm text-white/60">Hover posters for effects</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {demo.map((item, idx) => (
+            <PosterCard
+          key={item.title}
+          title={item.title}
+          badge={item.badge}
+          posterSrc={item.posterSrc}
+          href={item.href}
+          priority={idx < 2}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
