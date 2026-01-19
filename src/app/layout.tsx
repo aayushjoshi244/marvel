@@ -4,6 +4,7 @@ import "./globals.css";
 import { SoundProvider } from "@/components/SoundProvider";
 import SoundToggle from "@/components/SoundToggle";
 import CommandPalette from "@/components/CommandPalette";
+import WatchedHydrator from "@/components/WatchedHydrator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,7 @@ export default function RootLayout({
           <div className="fixed right-4 top-4 z-50">
             <SoundToggle />
           </div>
-
+          <WatchedHydrator />
           {children}
           <CommandPalette />
         </SoundProvider>

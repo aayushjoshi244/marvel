@@ -4,18 +4,21 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useWatchedStore } from "@/store/useWatchedStore";
 
 type PosterCardProps = {
+  id: string; // ✅ add id (needed for watched)
   title: string;
   subtitle?: string;
   posterSrc: string;
   badge?: string;
-  href: string; // ✅ add this
+  href: string;
   priority?: boolean;
   trailerMutedPreviewSrc?: string;
 };
 
 export default function PosterCard({
+  id,
   title,
   subtitle,
   posterSrc,
@@ -25,6 +28,9 @@ export default function PosterCard({
   trailerMutedPreviewSrc,
 }: PosterCardProps) {
   const [loaded, setLoaded] = useState(false);
+
+  const isWatched = useWatchedStore((s) => s.isWatched(id));
+  const toggleWatched = useWatchedStore((s) => s.toggleWatched);
 
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -56,14 +62,23 @@ export default function PosterCard({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.99 }}
     >
+      {/* glow */}
       <div
         id={glowId}
         className="pointer-events-none absolute -inset-3 rounded-2xl opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          background:
-            "radial-gradient(600px circle at 50% 50%, rgba(255,0,0,0.22), rgba(255,0,0,0.05), transparent 60%)",
+          background: isWatched
+            ? "radial-gradient(650px circle at 50% 50%, rgba(34,197,94,0.28), rgba(34,197,94,0.06), transparent 60%)"
+            : "radial-gradient(650px circle at 50% 50%, rgba(255,0,0,0.22), rgba(255,0,0,0.05), transparent 60%)",
         }}
       />
+
+      {/* Completed pulse */}
+      {isWatched && (
+        <div className="pointer-events-none absolute -inset-2 rounded-2xl opacity-0 group-hover:opacity-100">
+          <div className="absolute inset-0 animate-pulse rounded-2xl ring-1 ring-green-400/30" />
+        </div>
+      )}
 
       <Link
         href={href}
@@ -72,7 +87,10 @@ export default function PosterCard({
         className="block"
       >
         <motion.div
-          className="relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/60 shadow-xl"
+          className={[
+            "relative overflow-hidden rounded-2xl border bg-zinc-950/60 shadow-xl",
+            isWatched ? "border-green-400/20" : "border-white/10",
+          ].join(" ")}
           style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
           transition={{ type: "spring", stiffness: 220, damping: 18 }}
         >
@@ -118,6 +136,33 @@ export default function PosterCard({
                 {badge}
               </div>
             )}
+
+            {/* Mark watched icon */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault(); // don’t navigate
+                e.stopPropagation();
+                toggleWatched(id);
+              }}
+              className={[
+                "absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full border backdrop-blur transition",
+                isWatched
+                  ? "border-green-400/30 bg-green-500/15 hover:bg-green-500/20"
+                  : "border-white/15 bg-black/40 hover:bg-black/55",
+              ].join(" ")}
+              aria-label={isWatched ? "Marked watched" : "Mark as watched"}
+              title={isWatched ? "Watched" : "Mark watched"}
+            >
+              <span
+                className={[
+                  "text-lg leading-none",
+                  isWatched ? "text-green-300" : "text-white/85",
+                ].join(" ")}
+              >
+                ✓
+              </span>
+            </button>
           </div>
 
           <div className="p-4">
@@ -125,7 +170,12 @@ export default function PosterCard({
               <h3 className="text-base font-semibold text-white/95 leading-tight">
                 {title}
               </h3>
-              <span className="mt-1 h-2 w-2 rounded-full bg-red-500/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <span
+                className={[
+                  "mt-1 h-2 w-2 rounded-full transition-opacity duration-300",
+                  isWatched ? "bg-green-400/80 opacity-100" : "bg-red-500/80 opacity-0 group-hover:opacity-100",
+                ].join(" ")}
+              />
             </div>
 
             {subtitle && (
@@ -137,7 +187,7 @@ export default function PosterCard({
             <div className="mt-3 h-px w-full bg-white/10" />
 
             <p className="mt-3 text-xs text-white/55">
-              Hover to preview • Click for details
+              {isWatched ? "Completed • Nice." : "Hover to preview • Click for details"}
             </p>
           </div>
 
