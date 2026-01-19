@@ -50,7 +50,7 @@ export default function TimelinePage({
         <h1 className="mt-5 text-3xl md:text-5xl font-semibold">
           MCU Timeline
           <span className="block text-white/60 text-base md:text-lg mt-2">
-            Phase headers, sticky filters, cinematic cards.
+            Every Phase, Each timeline, cinematic experience.
           </span>
         </h1>
       </header>

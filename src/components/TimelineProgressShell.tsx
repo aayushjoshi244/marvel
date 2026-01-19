@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useWatchedStore } from "@/store/useWatchedStore";
 import PosterCard from "@/components/PosterCard";
 import type { Title } from "@/data/titles";
@@ -14,14 +15,35 @@ function pct(done: number, total: number) {
 
 export default function TimelineProgressShell({ grouped }: { grouped: Group[] }) {
   const watched = useWatchedStore((s) => s.watched);
+  const hydrate = useWatchedStore((s) => (s as any).hydrate); // in case you added hydrate
+  const isHydrated = useWatchedStore((s) => (s as any).isHydrated);
+
+  useEffect(() => {
+    if (typeof hydrate === "function") hydrate();
+  }, [hydrate]);
+
+  // Total titles in the current view (respects filters)
+  const totalTitles = useMemo(
+    () => grouped.reduce((acc, g) => acc + g.list.length, 0),
+    [grouped],
+  );
+
+  const watchedCount = useMemo(() => {
+    let c = 0;
+    for (const g of grouped) for (const t of g.list) if (watched[t.id]) c++;
+    return c;
+  }, [grouped, watched]);
+
+  const globalPercent = pct(watchedCount, totalTitles);
 
   const phaseStats = useMemo(() => {
     return grouped.map((g) => {
       const total = g.list.length;
-      const done = g.list.filter((t) => watched[t.id]).length;
+      const done = g.list.reduce((acc, t) => acc + (watched[t.id] ? 1 : 0), 0);
       const percent = pct(done, total);
       const nextUp = g.list.find((t) => !watched[t.id]) ?? null;
-      return { phase: g.phase, total, done, percent, nextUp, list: g.list };
+      const complete = total > 0 && done >= total;
+      return { phase: g.phase, total, done, percent, nextUp, complete, list: g.list };
     });
   }, [grouped, watched]);
 
@@ -40,38 +62,50 @@ export default function TimelineProgressShell({ grouped }: { grouped: Group[] })
           <div>
             <p className="text-xs tracking-widest text-white/60">NEXT UP</p>
             <p className="text-sm font-semibold text-white/90">
-              {globalNext ? globalNext.name : "All caught up. You're worthy."}
+              {/* avoid weird flash if your store hydrates */}
+              {typeof isHydrated === "boolean" && !isHydrated
+                ? "Loading your progress…"
+                : globalNext
+                  ? globalNext.name
+                  : "All caught up. You're worthy."}
             </p>
           </div>
 
-          {globalNext && (
-            <div className="w-[140px]">
-              <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full bg-red-500/70"
+          <div className="w-[180px]">
+            <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10">
+              {/* Animated global progress */}
+              <motion.div
+                className="absolute left-0 top-0 h-full bg-red-500/70"
+                initial={{ width: 0 }}
+                animate={{ width: `${globalPercent}%` }}
+                transition={{ type: "spring", stiffness: 120, damping: 20 }}
+              />
+
+              {/* Endgame pulse when EVERYTHING complete */}
+              {globalPercent === 100 && totalTitles > 0 && (
+                <motion.div
+                  className="absolute inset-0"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 0.35, 0] }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                   style={{
-                    width: `${Math.min(
-                      100,
-                      Math.round(
-                        (Object.values(watched).filter(Boolean).length /
-                          Math.max(1, Object.keys(watched).length)) *
-                          100,
-                      ),
-                    )}%`,
+                    background:
+                      "radial-gradient(800px circle at 50% 50%, rgba(255,255,255,0.16), rgba(255,0,0,0.10), transparent 60%)",
                   }}
                 />
-              </div>
-              <p className="mt-1 text-[11px] text-white/50">
-                Your journey progress
-              </p>
+              )}
             </div>
-          )}
+
+            <p className="mt-1 text-[11px] text-white/50">
+              {watchedCount}/{totalTitles} watched • {globalPercent}%
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Phases */}
       <div className="space-y-12 pt-8">
-        {phaseStats.map(({ phase, list, done, total, percent }) => (
+        {phaseStats.map(({ phase, list, done, total, percent, complete }) => (
           <div key={phase || 0}>
             <div className="mb-3 flex items-end justify-between">
               <div>
@@ -83,14 +117,36 @@ export default function TimelineProgressShell({ grouped }: { grouped: Group[] })
                 </p>
               </div>
 
-              {/* Phase progress bar */}
-              <div className="w-[220px]">
-                <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className="h-full bg-green-500/70"
-                    style={{ width: `${percent}%` }}
+              {/* Phase progress bar (animated + Endgame pulse when complete) */}
+              <div className="w-[260px]">
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10">
+                  <motion.div
+                    className="absolute left-0 top-0 h-full bg-green-500/70"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percent}%` }}
+                    transition={{ type: "spring", stiffness: 120, damping: 20 }}
                   />
+
+                  {complete && (
+                    <motion.div
+                      className="absolute inset-0"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.35, 0] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                      style={{
+                        background:
+                          "radial-gradient(700px circle at 50% 50%, rgba(255,255,255,0.14), rgba(16,185,129,0.12), transparent 60%)",
+                      }}
+                    />
+                  )}
                 </div>
+
+                {complete && (
+                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/70">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    Completed
+                  </div>
+                )}
               </div>
             </div>
 
