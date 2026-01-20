@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { titles } from "@/data/titles";
+import { devDeplay } from "@/lib/devDeplay";
 
 type UniverseCard = {
   universe: string;
@@ -9,6 +10,7 @@ type UniverseCard = {
 };
 
 function buildUniverseCards(): UniverseCard[] {
+
   const map = new Map<
     string,
     { count: number; poster: string; firstOrder: number }
@@ -44,7 +46,8 @@ function buildUniverseCards(): UniverseCard[] {
     });
 }
 
-export default function MultiversePage() {
+export default async function MultiversePage() {
+  await devDeplay(4000);
   const cards = buildUniverseCards();
 
   return (

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import PosterCard from "@/components/PosterCard";
 import { titles, type Title } from "@/data/titles";
 import { slugToSaga } from "@/lib/routeSlugs";
-
+import  {devDeplay}  from "@/lib/devDeplay";
 export function generateStaticParams() {
   return [
     { saga: "infinity" },
@@ -18,6 +18,7 @@ export default async function SagaDetailPage({
 }: {
   params: Promise<{ saga: string }>;
 }) {
+  await devDeplay(4000);
   const { saga: sagaSlug } = await params;
 
   const saga = slugToSaga(sagaSlug);

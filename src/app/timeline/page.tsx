@@ -1,6 +1,7 @@
 import FiltersBar from "@/components/FiltersBar";
 import PosterCard from "@/components/PosterCard";
 import { titles } from "@/data/titles";
+import { devDeplay } from "@/lib/devDeplay";
 import TimelineProgressShell from "@/components/TimelineProgressShell";
 
 function groupByPhase(items: typeof titles) {
@@ -18,11 +19,12 @@ function groupByPhase(items: typeof titles) {
     }));
 }
 
-export default function TimelinePage({
+export default async function TimelinePage({
   searchParams,
 }: {
   searchParams: { type?: string; phase?: string; q?: string };
 }) {
+  await devDeplay(4000);
   const type = searchParams.type ?? "all";
   const phase = searchParams.phase ?? "all";
   const q = (searchParams.q ?? "").toLowerCase();
