@@ -11,7 +11,7 @@ const QUOTES = [
   "We have hulk",
   "I love you 3000",
   "I'm Iron Man",
-  "With Great Power, CComes Great Responsibility",
+  "With Great Power, Comes Great Responsibility",
   "The hardest choices require the strongest wills.",
   "Bring me Thanos!",
   "Wakanda forever!",
@@ -61,7 +61,7 @@ export default function Loading({ label = "Loading..." }: Props) {
         >
           <div className="mx-auto mb-6 h-14 w-14 rounded-2xl border border-white/10 bg-white/5 grid place-items-center">
             <span className="text-lg font-semibold tracking-widest text-white/90">
-              MJ
+              AJ
             </span>
           </div>
 
