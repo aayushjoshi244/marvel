@@ -1,4 +1,11 @@
 import WatchedButton from "@/components/WatchedButton";
+import { titles } from "@/data/titles";
+
+export function generateStaticParams() {
+  return titles.map((t) => ({
+    slug: t.id,
+  }));
+}
 
 export default function TitlePage({ params }: { params: { slug: string } }) {
   return (
