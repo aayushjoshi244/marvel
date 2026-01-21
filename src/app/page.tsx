@@ -131,7 +131,7 @@ export default function Home() {
         <div className="mb-5 flex items-end justify-between">
           <h2 className="text-lg font-semibold text-white/90">Featured</h2>
           <span className="text-sm text-white/60">
-            Hover posters for effects
+            Hover to the Marvel Boat
           </span>
         </div>
 
