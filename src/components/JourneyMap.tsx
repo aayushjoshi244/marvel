@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { titles, type Title } from "@/data/titles";
 import { useJourney } from "@/store/journey";
 
@@ -173,17 +174,23 @@ function PhasePath({
   watched: Record<string, boolean>;
   onLockedClick: () => void;
 }) {
+  const router = useRouter();
   const ordered = useMemo(
     () => [...items].sort((a, b) => a.recommendedOrder - b.recommendedOrder),
-    [items]
+    [items],
   );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const completedCount = ordered.filter((t) => watched[t.id]).length;
   const total = ordered.length;
   const progress = total ? completedCount / total : 0;
 
   // ---- SIZING (fits for large phases) ----
-  const BOX = 520;
+  const BOX = 700;
   const cx = BOX / 2;
   const cy = BOX / 2;
 
@@ -195,7 +202,7 @@ function PhasePath({
   // Spiral shape control:
   // turns: how many loops; radius grows from minR -> maxR
   const turns = total >= 28 ? 2.8 : total >= 20 ? 2.4 : 2.0;
-  const minR = 92; // keep centre clear for the core ring
+  const minR = 100; // keep centre clear for the core ring
 
   const pts: Pt[] = useMemo(() => {
     if (total === 0) return [];
@@ -221,26 +228,28 @@ function PhasePath({
     <div className="mt-10 flex justify-center">
       <div className="relative" style={{ width: BOX, height: BOX }}>
         {/* ===== CURVATURE / ORBIT LINE ===== */}
-        <svg className="pointer-events-none absolute inset-0 h-full w-full">
-          {/* soft glow */}
-          <path
-            d={spiralD}
-            fill="none"
-            stroke="rgba(239,68,68,0.18)"
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* crisp line */}
-          <path
-            d={spiralD}
-            fill="none"
-            stroke="rgba(239,68,68,0.35)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        {mounted && (
+          <svg className="pointer-events-none absolute inset-0 h-full w-full">
+            {/* soft glow */}
+            <path
+              d={spiralD}
+              fill="none"
+              stroke="rgba(239,68,68,0.18)"
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* crisp line */}
+            <path
+              d={spiralD}
+              fill="none"
+              stroke="rgba(239,68,68,0.35)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
 
         {/* ===== VAULT CORE ===== */}
         <div className="absolute inset-0 flex items-center justify-center">
@@ -271,8 +280,12 @@ function PhasePath({
             <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(239,68,68,0.45),transparent_60%)]" />
             <div className="absolute inset-0 rounded-full border border-white/10 shadow-[0_0_40px_rgba(239,68,68,0.35)]" />
             <div className="relative flex h-full w-full flex-col items-center justify-center text-center">
-              <span className="text-[11px] tracking-widest text-white/60">PHASE CORE</span>
-              <span className="mt-1 text-sm font-semibold">{Math.round(progress * 100)}%</span>
+              <span className="text-[11px] tracking-widest text-white/60">
+                PHASE CORE
+              </span>
+              <span className="mt-1 text-sm font-semibold">
+                {Math.round(progress * 100)}%
+              </span>
             </div>
           </div>
         </div>
@@ -283,14 +296,16 @@ function PhasePath({
           if (!p) return null;
 
           const isWatched = !!watched[t.id];
-          const isNext = !isWatched && t.recommendedOrder === currentIndexGlobal;
-          const isLocked = !isWatched && t.recommendedOrder > currentIndexGlobal;
+          const isNext =
+            !isWatched && t.recommendedOrder === currentIndexGlobal;
+          const isLocked =
+            !isWatched && t.recommendedOrder > currentIndexGlobal;
 
           const ring = isNext
             ? "ring-2 ring-red-500/80 shadow-[0_0_25px_rgba(239,68,68,0.6)]"
             : isWatched
-            ? "ring-1 ring-emerald-400/40"
-            : "ring-1 ring-white/10";
+              ? "ring-1 ring-emerald-400/40"
+              : "ring-1 ring-white/10";
 
           return (
             <motion.button
@@ -299,16 +314,21 @@ function PhasePath({
               whileTap={{ scale: 0.97 }}
               onClick={() => {
                 if (isLocked) onLockedClick();
-                else window.location.href = `/title/${t.id}`;
+                else router.push(`/title/${(t as any).slug ?? t.id}`);
               }}
               className={`absolute -translate-x-1/2 -translate-y-1/2 ${ring}
                 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md overflow-hidden transition`}
               style={{
-                left: p.x,
-                top: p.y,
-                width: nodeSize,
-                height: nodeSize,
-                borderRadius: 14,
+                left: `${p.x.toFixed(3)}px`,
+                top: `${p.y.toFixed(3)}px`,
+                width: `${nodeSize}px`,
+                height: `${nodeSize}px`,
+
+                // match server’s expanded border radius output
+                borderTopLeftRadius: "14px",
+                borderTopRightRadius: "14px",
+                borderBottomRightRadius: "14px",
+                borderBottomLeftRadius: "14px",
               }}
               title={t.name}
             >
@@ -325,7 +345,9 @@ function PhasePath({
 
               <div className="relative grid h-full w-full place-items-center">
                 {isWatched ? (
-                  <span className="text-xs font-semibold text-emerald-300">✓</span>
+                  <span className="text-xs font-semibold text-emerald-300">
+                    ✓
+                  </span>
                 ) : isNext ? (
                   <motion.span
                     className="h-2.5 w-2.5 rounded-full bg-red-500"
@@ -343,7 +365,9 @@ function PhasePath({
                 )}
               </div>
 
-              {isLocked && <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />}
+              {isLocked && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+              )}
             </motion.button>
           );
         })}
@@ -352,10 +376,15 @@ function PhasePath({
   );
 }
 
-
 export default function JourneyMap() {
+  const router = useRouter();
   const watched = useJourney((s) => s.watched);
   const [lockedDialog, setLockedDialog] = useState(false);
+  const hydrate = useJourney((s) => s.hydrate);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
 
   // Global order (campaign order)
   const ordered = useMemo(() => {
@@ -365,7 +394,7 @@ export default function JourneyMap() {
   // current “level” = first un-watched in global order
   const currentOrder = useMemo(() => {
     const next = ordered.find((t) => !watched[t.id]);
-    return next?.recommendedOrder ?? (ordered.at(-1)?.recommendedOrder ?? 1);
+    return next?.recommendedOrder ?? ordered.at(-1)?.recommendedOrder ?? 1;
   }, [ordered, watched]);
 
   const completed = useMemo(() => {
@@ -385,7 +414,10 @@ export default function JourneyMap() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/65 to-black" />
       </div>
 
-      <JourneyDialog open={lockedDialog} onClose={() => setLockedDialog(false)} />
+      <JourneyDialog
+        open={lockedDialog}
+        onClose={() => setLockedDialog(false)}
+      />
 
       <section className="relative mx-auto max-w-6xl px-6 pb-10 pt-12">
         <Link href="/" className="text-sm text-white/60 hover:text-white/85">
@@ -435,7 +467,7 @@ export default function JourneyMap() {
               <button
                 onClick={() => {
                   const next = ordered.find((t) => !watched[t.id]);
-                  if (next) window.location.href = `/title/${next.id}`;
+                  if (next) router.push(`/title/${next.id}`);
                 }}
                 className="flex-1 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500"
               >
@@ -452,7 +484,10 @@ export default function JourneyMap() {
         if (!list.length) return null;
 
         return (
-          <section key={ph.key} className="relative mx-auto max-w-6xl px-6 pb-16">
+          <section
+            key={ph.key}
+            className="relative mx-auto max-w-6xl px-6 pb-16"
+          >
             <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
               {/* blended background */}
               <div className="absolute inset-0">
@@ -482,7 +517,9 @@ export default function JourneyMap() {
                     <p className="mt-2 text-sm text-white/65">{ph.subtitle}</p>
                   </div>
 
-                  <div className="text-xs text-white/60">{list.length} levels</div>
+                  <div className="text-xs text-white/60">
+                    {list.length} levels
+                  </div>
                 </div>
 
                 <PhasePath

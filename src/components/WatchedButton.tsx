@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
 import { useJourney } from "@/store/journey";
 
 export default function WatchedButton({ id }: { id: string }) {
-  const { watched, toggleWatched, hydrate } = useJourney();
-
-  useEffect(() => hydrate(), [hydrate]);
+  const { watched, toggleWatched} = useJourney();
 
   const isWatched = !!watched[id];
 

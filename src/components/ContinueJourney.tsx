@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { titles } from "@/data/titles";
@@ -8,9 +8,6 @@ import { useJourney } from "@/store/journey";
 
 export default function ContinueJourney() {
   const watched = useJourney((s) => s.watched);
-  const hydrate = useJourney((s) => s.hydrate);
-
-  useEffect(() => hydrate(), [hydrate]);
 
   const nextUp = useMemo(() => {
     const sorted = titles.slice().sort((a, b) => a.recommendedOrder - b.recommendedOrder);
