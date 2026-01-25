@@ -6,20 +6,35 @@ export type Title = {
   type: TitleType;
 
   // grouping
-  universe: string; // e.g. "Earth-616", "Earth-10005"
+  universe: string;
   saga: "Infinity" | "Multiverse" | "Legacy";
-  phase?: number; // 1..6 for MCU phases, optional for Legacy lists
+  phase?: number;
 
   // sorting
   recommendedOrder: number;
 
   // media
   posterSrc: string;
-  trailerMutedPreviewSrc?: string; // optional: hover preview mp4
+  trailerMutedPreviewSrc?: string;
+
+  // ✅ NEW (optional, for details modal)
+  year?: number;
+  synopsis?: string;
+  runtimeMins?: number;
+
+  // ✅ where to watch / external links
+  watchUrl?: string;     // e.g. Disney+ link (or your own internal page)
+  trailerUrl?: string;   // e.g. YouTube
 };
 
 // helper to keep poster paths consistent
 const p = (slug: string) => `/posters/${slug}.jpg`;
+
+const yearFromId = (id: string): number | undefined => {
+  // matches "-2019" at the end of the id
+  const m = id.match(/-(\d{4})$/);
+  return m ? Number(m[1]) : undefined;
+};
 
 // ------------------------------------------------------------
 // Marvel Cinematic Multiverse Watch Order (from your screenshots)
@@ -36,6 +51,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 1,
     posterSrc: p("blade-1998"),
+
+    synopsis: "In a world where vampires secretly rule the night, one man stands between humanity and eternal darkness. Half-human, half-vampire, Blade possesses all their strengths and none of their weaknesses—except the thirst. Armed with silver weapons, martial skill, and an unrelenting drive, he hunts the creatures of the underworld while battling the curse within himself. When a powerful vampire named Deacon Frost threatens to awaken an ancient blood god, Blade must face his greatest challenge yet.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "blade-ii-2002",
@@ -45,6 +64,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 2,
     posterSrc: p("blade-ii-2002"),
+
+    synopsis: "The hunt continues. When a new breed of vampires—faster, deadlier, and immune to Blade’s usual weapons—emerges, the Daywalker must forge an uneasy alliance with the very creatures he despises. Teaming up with a vampire strike force known as the Bloodpack, Blade faces a relentless enemy called the Reapers, whose hunger threatens both humans and vampires alike. In this brutal war for survival, Blade discovers that trust is as dangerous as the monsters he hunts.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "blade-trinity-2004",
@@ -54,8 +77,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 3,
     posterSrc: p("blade-trinity-2004"),
+    synopsis: "The war against vampires reaches its most dangerous chapter. Framed by his enemies and hunted by the FBI, Blade finds himself forced to join forces with a new team of human vampire hunters known as the Nightstalkers. Together, they face the ultimate threat: Dracula himself, resurrected by the vampire nation to ensure their dominance. As Blade confronts the original vampire, he must battle not only overwhelming odds but also his own inner darkness in a fight that will decide the fate of humanity",
+    watchUrl:"",
+    trailerUrl:"",
   },
-
   // -----------------------
   // X-Men: Part 1 (Earth-10005)
   // -----------------------
@@ -67,6 +92,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 4,
     posterSrc: p("x-men-2000"),
+
+    synopsis:"In a world divided by fear and prejudice, mutants—humans born with extraordinary powers—struggle for acceptance. Led by Professor Charles Xavier, the X-Men fight to protect both humanity and their own kind from those who would exploit or destroy them. But when Magneto, a powerful mutant with a dark vision of the future, sets a plan in motion that could change the fate of mankind, the X-Men must rise to stop him before war erupts between humans and mutants.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "x2-2003",
@@ -76,6 +105,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 5,
     posterSrc: p("x2-2003"),
+
+    synopsis:"Mutants face their greatest threat yet—not from Magneto, but from humanity itself. When a deadly attack on the President sparks fear and suspicion, the government authorizes a ruthless military strike against Xavier’s school. As Professor X and his students fight for survival, they are forced into an uneasy alliance with Magneto to stop William Stryker, a man whose twisted plan could wipe out every mutant on Earth. With loyalties tested and enemies united, the X-Men must risk everything to protect both their kind and the future of humanity.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "x-men-the-last-stand-2006",
@@ -85,11 +118,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 6,
     posterSrc: p("x-men-the-last-stand-2006"),
+    synopsis:"The battle for mutant survival reaches its breaking point. When a “cure” for mutation is discovered, the world is torn between hope and fear. As humans debate eradicating mutant powers, Magneto rallies his Brotherhood to wage war against humanity, while the X-Men struggle to protect both sides from destruction. At the same time, Jean Grey returns, consumed by the overwhelming force of the Phoenix, threatening to annihilate everything in her path. With loyalties fractured and the future of mutants hanging in the balance, the X-Men must make their final stand" ,
+    watchUrl:"",
+    trailerUrl:"",
   },
-
-  // -----------------------
-  // Spider-Man (Earth-96283)
-  // -----------------------
   {
     id: "spider-man-2002",
     name: "Spider-Man",
@@ -98,6 +130,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 7,
     posterSrc: p("spider-man-2002"),
+
+    synopsis:"With great power comes great responsibility. After being bitten by a genetically altered spider, shy teenager Peter Parker discovers he has incredible abilities—superhuman strength, agility, and the ability to cling to walls. As he embraces his new identity as Spider-Man, Peter must balance the challenges of everyday life with the duty of protecting New York City. But when the ruthless Green Goblin emerges, threatening everything Peter holds dear, the young hero faces his ultimate test: to rise above fear and sacrifice for the greater good",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "spider-man-2-2004",
@@ -107,6 +143,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 8,
     posterSrc: p("spider-man-2-2004"),
+
+    synopsis:"The hero’s greatest battle is within. Two years after becoming Spider-Man, Peter Parker struggles to balance his double life—torn between his duty to protect New York and his desire for a normal existence with Mary Jane. Just as he considers leaving his mask behind, a brilliant scientist’s experiment goes horribly wrong, transforming Dr. Otto Octavius into the deadly Doctor Octopus. With mechanical arms and a thirst for vengeance, Doc Ock threatens everything Peter holds dear. To save the city and those he loves, Peter must rediscover the true meaning of sacrifice and embrace his destiny as Spider-Man.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "spider-man-3-2007",
@@ -116,6 +156,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 9,
     posterSrc: p("spider-man-3-2007"),
+    synopsis:"Peter Parker finally feels like life is falling into place—his relationship with Mary Jane is strong, and the city embraces Spider-Man as its hero. But when a strange black symbiote bonds with him, Peter’s powers grow while his darker impulses begin to take control. As he battles his own inner demons, new enemies rise: Flint Marko, the Sandman, whose tragic past ties to Peter’s own, and Eddie Brock, who transforms into the vengeful Venom. With friendships tested and his soul at stake, Spider-Man must confront the darkness within to save the people he loves and the hero he’s meant to be.",
+    watchUrl:"",
+    trailerUrl:"",
   },
 
   // -----------------------
@@ -129,6 +172,10 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 10,
     posterSrc: p("daredevil-2003"),
+
+    synopsis:"Justice is blind. Blinded as a child in a freak accident, Matt Murdock gains extraordinary senses that allow him to perceive the world in ways no one else can. By day, he is a lawyer fighting for justice in the courtroom. By night, he becomes Daredevil, a masked vigilante protecting Hell’s Kitchen from corruption and crime. When the ruthless Kingpin rises to power and unleashes the deadly assassin Bullseye, Daredevil must confront his greatest fears, risking everything to protect the city and the woman he loves.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "elektra-2005",
@@ -138,6 +185,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 11,
     posterSrc: p("elektra-2005"),
+    synopsis:"Trained as a deadly assassin, Elektra Natchios walks the fine line between redemption and darkness. Haunted by her past and resurrected from death, she lives in isolation until fate draws her into protecting a father and daughter targeted by a mysterious order known as The Hand. As Elektra confronts her own inner demons, she must decide whether her skills will serve vengeance or salvation in a battle that could cost her everything.",
+    watchUrl:"",
+    trailerUrl:"",
   },
 
   // -----------------------
@@ -151,6 +201,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 12,
     posterSrc: p("fantastic-four-2005"),
+    synopsis:"Four ordinary people are transformed into extraordinary heroes after a cosmic storm alters their DNA. Scientist Reed Richards gains the ability to stretch his body, Sue Storm becomes invisible and can generate force fields, Johnny Storm ignites into flame, and Ben Grimm is turned into the super-strong Thing. Together, they must learn to harness their powers and work as a team to stop Victor Von Doom, whose lust for power threatens the world. United by fate, they become the Fantastic Four—the world’s first family of superheroes.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "fantastic-four-rise-of-the-silver-surfer-2007",
@@ -160,6 +213,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 13,
     posterSrc: p("fantastic-four-rise-of-the-silver-surfer-2007"),
+    synopsis:"The world’s first family of superheroes faces a cosmic threat unlike any they’ve ever known. As Reed Richards and Sue Storm prepare for their wedding, mysterious global disturbances signal the arrival of the Silver Surfer, a powerful being who heralds the destruction of worlds. With Earth’s fate hanging in the balance, the Fantastic Four must uncover the truth behind the Surfer’s mission and confront the ultimate danger—Galactus, the devourer of planets. United by courage and family bonds, they stand against forces that could end humanity itself.",
+    watchUrl:"",
+    trailerUrl:"",
   },
 
   // =======================
@@ -178,6 +234,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 14,
     posterSrc: p("iron-man-2008"),
+    synopsis:"Billionaire industrialist Tony Stark lives a life of luxury until a near-death experience changes everything. Captured by terrorists and forced to build weapons, Stark instead creates a powerful suit of armor to escape. Returning home, he refines the technology, transforming himself into Iron Man—a hero armed with genius, cutting-edge tech, and an unbreakable will. But when his own company’s weapons fall into the wrong hands, Stark must face a deadly enemy born of betrayal, proving that the man inside the suit is what truly makes the hero.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "the-incredible-hulk-2008",
@@ -188,6 +247,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 15,
     posterSrc: p("the-incredible-hulk-2008"),
+    synopsis:"Haunted by the monster within, scientist Bruce Banner lives in exile, desperately searching for a cure to the gamma radiation that transformed him into the Hulk. But when the military closes in, determined to weaponize his power, Banner is forced out of hiding. As he struggles to control his rage, a new threat emerges—the Abomination, a creature even more powerful and destructive than the Hulk himself. To save the world and protect the woman he loves, Banner must embrace his identity and unleash the hero inside the beast.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "the-consultant",
@@ -198,6 +260,10 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 16,
     posterSrc: p("the-consultant"),
+
+    synopsis:"In the shadows of S.H.I.E.L.D., not every mission is about saving the world—some are about keeping it from falling apart. When the World Security Council insists on recruiting the Abomination into the Avengers Initiative, Agent Phil Coulson is dispatched to ensure that doesn’t happen. Using subtle manipulation and a bit of mischief, Coulson orchestrates events so that Tony Stark becomes “the consultant,” steering the Council’s decision away from disaster. Short, sharp, and sly, this Marvel One-Shot reveals the unseen moves that keep the Avengers’ future intact.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "iron-man-2-2010",
@@ -208,6 +274,10 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 17,
     posterSrc: p("iron-man-2-2010"),
+
+    synopsis:"The world now knows Tony Stark is Iron Man. As he basks in fame and struggles with the responsibility of being both a billionaire and a hero, new dangers emerge. The U.S. government demands control of his technology, rivals seek to replicate his armor, and a mysterious enemy named Ivan Vanko—armed with electrified whips and a vendetta—threatens to destroy everything Stark has built. With his health deteriorating and his empire under siege, Tony must rely on allies old and new, including Pepper Potts, James Rhodes, and Natasha Romanoff, to prove that Iron Man is more than just the suit",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "a-funny-thing-thor-hammer",
@@ -218,6 +288,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 18,
     posterSrc: p("a-funny-thing-thor-hammer"),
+    synopsis:"On his way to investigate the mysterious hammer that has fallen to Earth, Agent Phil Coulson makes a quick stop at a gas station. What should have been a routine errand turns into a hilarious showcase of Coulson’s calm confidence and unexpected combat skills when a pair of robbers attempt a holdup. With dry wit and effortless precision, Coulson proves that even without superheroes around, S.H.I.E.L.D. agents can handle themselves—and sometimes save the day in the most unexpected places.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "thor-2011",
@@ -228,6 +301,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 19,
     posterSrc: p("thor-2011"),
+    synopsis:"From the shining realm of Asgard comes a warrior destined to learn humility. Thor, the mighty God of Thunder, is cast down to Earth after his reckless arrogance threatens the peace of the Nine Realms. Stripped of his powers and his hammer Mjolnir, he must discover what it truly means to be a hero. As dark forces rise and Asgard faces destruction, Thor must reclaim his strength, protect humanity, and prove himself worthy of the power he once took for granted.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "captain-america-the-first-avenger-2011",
@@ -238,6 +314,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 20,
     posterSrc: p("captain-america-the-first-avenger-2011"),
+    synopsis:"In the darkest days of World War II, one man dares to dream of becoming a soldier. Frail but determined, Steve Rogers volunteers for a secret experiment that transforms him into the world’s first super-soldier: Captain America. Armed with courage, a shield, and an unbreakable spirit, he leads the fight against Hydra, a ruthless organization led by the sinister Red Skull. As the war rages and sacrifices mount, Rogers must prove that true strength lies not in muscle, but in heart—and that heroes are forged in the fire of selflessness",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "agent-carter-one-shot",
@@ -248,6 +327,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 21,
     posterSrc: p("agent-carter-one-shot"),
+    synopsis:"A year after Captain America’s disappearance, Peggy Carter finds herself sidelined at the Strategic Scientific Reserve, dismissed by her male colleagues despite her wartime heroics. When a dangerous mission arises, Carter seizes the opportunity to prove her worth, defying orders and taking matters into her own hands. With sharp intelligence, fearless resolve, and unmatched combat skills, she uncovers a deadly conspiracy and secures her place as more than just “Captain America’s girl.” This Marvel One-Shot showcases Peggy’s rise as a founding force of S.H.I.E.L.D., reminding the world that true heroes don’t wait for permission.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "the-avengers-2012",
@@ -258,6 +340,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 22,
     posterSrc: p("the-avengers-2012"),
+    synopsis:"When Earth faces a threat too great for any single hero, the world’s mightiest must unite. Loki, armed with the Tesseract and a thirst for domination, unleashes chaos that could bring humanity to its knees. To stop him, Nick Fury assembles an unprecedented team: Iron Man, Captain America, Thor, Hulk, Black Widow, and Hawkeye. But before they can save the world, they must learn to trust one another—and themselves. In the ultimate battle for Earth’s survival, the Avengers rise, proving that together they are stronger than they could ever be apart.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "item-47",
@@ -268,6 +353,9 @@ export const titles: Title[] = [
     phase: 1,
     recommendedOrder: 23,
     posterSrc: p("item-47"),
+    synopsis:"In the aftermath of the Battle of New York, not all of the alien Chitauri weapons were destroyed. When a down-on-their-luck couple discovers one of these powerful artifacts—known as Item 47—they decide to use it for a spree of high-tech bank robberies. But their actions draw the attention of S.H.I.E.L.D., who dispatches agents Sitwell and Blake to recover the weapon and deal with the thieves. What begins as reckless ambition turns into a dangerous game of cat and mouse, showing that even the smallest piece of alien tech can change lives forever.",
+    watchUrl:"",
+    trailerUrl:"",
   },
 
   // -----------------------
@@ -282,6 +370,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 24,
     posterSrc: p("iron-man-3-2013"),
+    synopsis:"After the Battle of New York, Tony Stark is haunted by anxiety and doubt, questioning whether the man makes the suit or the suit makes the man. When a mysterious terrorist known as the Mandarin launches a wave of devastating attacks, Stark’s world is shattered, leaving him stripped of his armor and resources. Forced to rely on his ingenuity and courage, he embarks on a dangerous journey to uncover the truth behind the enemy’s power. As old enemies resurface and new threats emerge, Stark must confront his greatest fear—that without Iron Man, he is nothing—and prove once again that his true strength lies within.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "all-hail-the-king",
@@ -292,6 +383,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 25,
     posterSrc: p("all-hail-the-king"),
+    synopsis:"",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "thor-the-dark-world-2013",
@@ -302,6 +396,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 26,
     posterSrc: p("thor-the-dark-world-2013"),
+    synopsis:"Locked away in prison after the events of Iron Man 3, Trevor Slattery—the flamboyant actor who once posed as the Mandarin—has become an unlikely celebrity among inmates. While basking in his newfound fame, Trevor agrees to a documentary interview that quickly takes a darker turn. What begins as a humorous look at his eccentric persona soon reveals a deeper truth: the real Ten Rings organization is watching, and Trevor’s past deception may have deadly consequences. Equal parts comedy and intrigue, this Marvel One-Shot uncovers hidden layers of the Marvel universe, proving that even jokes can have serious repercussions.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "captain-america-the-winter-soldier-2014",
@@ -312,6 +409,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 27,
     posterSrc: p("captain-america-the-winter-soldier-2014"),
+    synopsis:"Living in a modern world he barely understands, Steve Rogers struggles to find his place after the Battle of New York. But when S.H.I.E.L.D. itself comes under attack, Captain America uncovers a conspiracy that reaches the highest levels of power. With Black Widow at his side and a new ally, Falcon, by his wing, Rogers must confront a deadly assassin known only as the Winter Soldier—whose shocking identity forces him to face his past. In a fight for freedom and trust, Captain America learns that sometimes the greatest enemy comes from within.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "guardians-of-the-galaxy-2014",
@@ -322,6 +422,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 28,
     posterSrc: p("guardians-of-the-galaxy-2014"),
+    synopsis:"Across the far reaches of space, a ragtag band of misfits is thrown together by fate. Peter Quill, a daring outlaw with a love for old-school music, finds himself hunted after stealing a mysterious orb of immense power. To survive, he joins forces with the deadly assassin Gamora, the vengeful warrior Drax, and the unlikely duo of Rocket—a wisecracking raccoon—and Groot, a gentle giant with a single phrase. As they clash with ruthless enemies and cosmic forces, these unlikely allies discover that sometimes family is found in the most unexpected places. Together, they become the Guardians of the Galaxy.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "daredevil-s1",
@@ -332,6 +435,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 29,
     posterSrc: p("daredevil-s1"),
+    synopsis:"Blinded as a child but gifted with extraordinary senses, Matt Murdock grows up to fight for justice in two worlds. By day, he is a lawyer defending the innocent in Hell’s Kitchen. By night, he becomes Daredevil, a masked vigilante striking fear into criminals who prey on the weak. As he battles corruption and crime, Murdock faces his greatest challenge yet: Wilson Fisk, a ruthless kingpin whose vision for the city threatens everything Matt stands for. In a war for the soul of Hell’s Kitchen, Daredevil must decide how far he’s willing to go—and what kind of hero he truly is.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "avengers-age-of-ultron-2015",
@@ -342,6 +448,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 30,
     posterSrc: p("avengers-age-of-ultron-2015"),
+    synopsis:"When Tony Stark and Bruce Banner attempt to create a peacekeeping artificial intelligence, their plan backfires, giving birth to Ultron—a ruthless machine determined to eradicate humanity. As Ultron builds an army and threatens global annihilation, the Avengers must reunite to face their most dangerous foe yet. Along the way, they encounter powerful new allies and adversaries, including the twins Wanda and Pietro Maximoff, whose abilities challenge the team in unexpected ways. In a battle that spans the globe, the Avengers must confront their own fears, test their unity, and prove that even heroes are not invincible.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "ant-man-2015",
@@ -352,6 +461,9 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 31,
     posterSrc: p("ant-man-2015"),
+    synopsis:"Ex-con Scott Lang wants nothing more than to redeem himself and reconnect with his daughter. But when he’s recruited by scientist Hank Pym, he discovers a suit that can shrink him to the size of an ant while giving him incredible strength. As Lang trains to master his new abilities, he must embrace the unlikely role of hero to stop Darren Cross, whose twisted ambitions threaten to unleash chaos with his own shrinking technology. From high-stakes heists to microscopic battles, Ant-Man proves that even the smallest hero can make the biggest difference",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "jessica-jones-s1",
@@ -362,6 +474,10 @@ export const titles: Title[] = [
     phase: 2,
     recommendedOrder: 32,
     posterSrc: p("jessica-jones-s1"),
+
+    synopsis:"Haunted by a past she can’t escape, Jessica Jones tries to rebuild her life as a private investigator in New York City. Gifted with superhuman strength but burdened by trauma, she takes on cases that expose the city’s darkest secrets. When a sinister figure from her past—Kilgrave, a man with terrifying mind-control powers—resurfaces, Jessica is forced to confront the scars he left behind. As the battle becomes personal, she must face her demons, protect those she cares about, and prove that true heroism isn’t about saving the world—it’s about surviving it.",
+    watchUrl:"",
+    trailerUrl:"",
   },
 
   // -----------------------
@@ -376,6 +492,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 33,
     posterSrc: p("daredevil-s2"),
+    synopsis:"Hell’s Kitchen is never quiet, and Matt Murdock’s war on crime grows more complicated than ever. As Daredevil, he faces a brutal new vigilante—the Punisher—whose lethal methods force Matt to question the limits of justice. At the same time, old wounds resurface when Elektra Natchios, a dangerous figure from his past, returns to pull him into a shadow war against the mysterious ninja clan known as the Hand. Torn between his duty as a lawyer, his role as a protector, and the people he loves, Murdock must confront the fine line between hero and executioner, and decide what kind of man he truly wants to be.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "captain-america-civil-war-2016",
@@ -386,6 +505,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 34,
     posterSrc: p("captain-america-civil-war-2016"),
+    synopsis:"After another mission ends in collateral damage, the world demands accountability from Earth’s mightiest heroes. The Sokovia Accords divide the Avengers, forcing them to choose between government oversight or personal freedom. At the heart of the conflict stand Captain America and Iron Man—once allies, now bitterly opposed. As friendships fracture and loyalties are tested, a shadowy figure manipulates events from behind the scenes, unleashing the deadly Winter Soldier and pushing the team toward all-out war. In a battle where heroes fight heroes, the greatest threat may not be the enemy outside, but the divisions within.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "luke-cage-s1",
@@ -396,6 +518,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 35,
     posterSrc: p("luke-cage-s1"),
+    synopsis:"In the heart of Harlem, a man tries to live quietly, hiding from a past that gave him unbreakable skin and superhuman strength. But when crime and corruption threaten the community he loves, Luke Cage is forced to step out of the shadows. Facing ruthless enemies like Cottonmouth and Mariah Dillard, Cage becomes both a symbol of hope and a target for destruction. As bullets bounce off him and secrets rise to the surface, Luke must decide whether to embrace his destiny as Harlem’s protector—or risk losing everything he stands for.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "doctor-strange-2016",
@@ -406,6 +531,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 36,
     posterSrc: p("doctor-strange-2016"),
+    synopsis:"Dr. Stephen Strange, a brilliant but arrogant neurosurgeon, sees his world shattered after a tragic accident destroys his hands. Desperate to heal, he journeys across the globe and discovers the hidden realm of the mystic arts. Under the guidance of the Ancient One, Strange learns to harness magic, bending reality, time, and space itself. But when a rogue sorcerer threatens to unleash dark forces upon the world, Strange must put aside his ego and embrace his destiny as Earth’s Sorcerer Supreme. In a battle where science meets sorcery, he learns that sometimes the greatest power is letting go.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "iron-fist-s1",
@@ -416,6 +544,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 37,
     posterSrc: p("iron-fist-s1"),
+    synopsis:"After disappearing for fifteen years, Danny Rand returns to New York City, presumed dead but very much alive. Trained in the mystical city of K’un-Lun, he has mastered martial arts and harnessed the power of the Iron Fist—a force that channels energy into his fists with devastating impact. But reclaiming his family’s company is only the beginning. As he battles corruption, criminal empires, and the shadowy Hand, Danny must prove himself worthy of his destiny. Torn between the modern world and his mystical training, he struggles to balance responsibility, identity, and the true meaning of power.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "guardians-of-the-galaxy-vol-2-2017",
@@ -426,6 +557,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 38,
     posterSrc: p("guardians-of-the-galaxy-vol-2-2017"),
+    synopsis:"The galaxy’s most unlikely heroes are back—and this time, family is at the heart of the fight. As Peter Quill, Gamora, Drax, Rocket, and Baby Groot continue their adventures, they encounter new allies and dangerous foes across the stars. When Quill finally meets his long-lost father, Ego, the reunion sparks questions of destiny, loyalty, and trust. But as secrets unravel and cosmic threats loom, the Guardians must rely on each other more than ever. With humor, heart, and high-octane action, they prove that saving the universe isn’t just about power—it’s about belonging.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "spider-man-homecoming-2017",
@@ -436,6 +570,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 39,
     posterSrc: p("spider-man-homecoming-2017"),
+    synopsis:"Thrilled by his role in the Avengers’ battle, young Peter Parker returns to Queens eager to prove himself as more than just the “friendly neighborhood Spider-Man.” Under the watchful eye of Tony Stark, Peter struggles to balance high school life with his secret identity. But when a dangerous new villain, the Vulture, emerges with stolen alien technology, Peter must rise above his inexperience and reckless ambition. With his friends, his courage, and his heart on the line, Spider-Man learns that being a hero isn’t about fame—it’s about responsibility.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "the-defenders",
@@ -446,6 +583,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 40,
     posterSrc: p("the-defenders"),
+    synopsis:"Four heroes, four paths, one city in peril. Daredevil, Jessica Jones, Luke Cage, and Iron Fist each fight their own battles across New York, but when a shadowy organization known as the Hand threatens to consume the city, destiny brings them together. Reluctant allies at first, their differences in methods and personalities spark tension—but their shared mission for justice forces them to unite. As secrets unravel and the stakes rise, these street-level heroes must learn to trust one another, proving that sometimes the strongest defense is forged in unlikely alliances.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "thor-ragnarok-2017",
@@ -456,6 +596,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 41,
     posterSrc: p("thor-ragnarok-2017"),
+    synopsis:"Imprisoned on the distant world of Sakaar, Thor finds himself stripped of his hammer and forced into gladiatorial combat against none other than the Hulk. Meanwhile, Asgard faces its greatest threat yet: Hela, the goddess of death, who seeks to bring about Ragnarok—the destruction of Thor’s home and the end of its people. To save Asgard, Thor must forge unlikely alliances, rediscover his true power, and embrace the hero he was always meant to be. With humor, heart, and cosmic spectacle, Ragnarok redefines the God of Thunder’s destiny in the Marvel universe.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "the-punisher-s1",
@@ -466,6 +609,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 42,
     posterSrc: p("the-punisher-s1"),
+    synopsis:"After avenging the murder of his family, former Marine Frank Castle disappears into the shadows, presumed dead. But when a conspiracy tied to his past resurfaces, Castle is drawn back into the fight. Armed with relentless determination and an arsenal of weapons, he wages a one-man war against corruption and crime, earning the name that strikes fear into the underworld: The Punisher. As allies and enemies blur, Frank must confront the cost of his vengeance and decide whether justice and retribution can ever truly be the same.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "black-panther-2018",
@@ -476,6 +622,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 43,
     posterSrc: p("black-panther-2018"),
+    synopsis:"After the death of his father, T’Challa returns to Wakanda to claim his rightful place as king. But with the throne comes the mantle of the Black Panther, protector of a nation hidden from the world yet rich in power and tradition. As enemies rise from within and beyond Wakanda’s borders—most notably the vengeful Erik Killmonger—T’Challa must confront questions of legacy, justice, and responsibility. In a struggle that will determine the fate of his people and the world, the Black Panther learns that true strength lies not only in vibranium, but in the heart of a leader.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "jessica-jones-s2",
@@ -486,6 +635,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 44,
     posterSrc: p("jessica-jones-s2"),
+    synopsis:"Still reeling from her battle with Kilgrave, Jessica Jones struggles to rebuild her life and reputation as a private investigator. But when a new case forces her to confront the mystery of her own past, she uncovers shocking truths about the experiments that gave her powers. As secrets unravel, Jessica faces dangerous adversaries, moral dilemmas, and the haunting question of identity. With allies like Trish Walker by her side—and enemies lurking in the shadows—Jessica must decide whether she’s defined by her trauma or by the strength she finds in overcoming it",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "avengers-infinity-war-2018",
@@ -496,6 +648,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 45,
     posterSrc: p("avengers-infinity-war-2018"),
+    synopsis:"The Avengers, Guardians of the Galaxy, and Earth’s mightiest heroes face their greatest challenge yet: Thanos, the Mad Titan, who seeks to collect all six Infinity Stones and reshape the universe with a single snap. As battles rage across Earth and the cosmos, alliances are tested, sacrifices are made, and the line between victory and survival grows thin. With the fate of half of all life hanging in the balance, the heroes must unite like never before—yet even together, they may not be enough to stop destiny itself.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "luke-cage-s2",
@@ -506,6 +661,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 46,
     posterSrc: p("luke-cage-s2"),
+    synopsis:"After defeating Cottonmouth and Diamondback, Luke Cage has become a symbol of hope in Harlem. But fame brings new challenges, as the bulletproof hero struggles with the weight of being a public figure and protector. When John “Bushmaster” McIver arrives, wielding powers that rival Luke’s own, Harlem becomes the battleground for control, pride, and survival. As alliances shift and enemies grow stronger, Luke must confront not only external threats but also the personal cost of being invincible. In a season where power and responsibility collide, Harlem’s hero learns that even the unbreakable can be tested.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "ant-man-and-the-wasp-2018",
@@ -516,6 +674,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 47,
     posterSrc: p("ant-man-and-the-wasp-2018"),
+    synopsis:"After the events of Civil War, Scott Lang struggles to balance his responsibilities as a father with his duties as Ant-Man. But when Dr. Hank Pym and Hope van Dyne enlist his help, he’s drawn into a new mission that uncovers secrets from their past. As Hope steps into her own heroic role as the Wasp, the duo must learn to fight side by side against a mysterious new adversary, Ghost, whose powers threaten the fabric of reality itself. With the quantum realm offering both danger and discovery, Ant-Man and the Wasp prove that sometimes the smallest heroes face the biggest challenges.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "iron-fist-s2",
@@ -526,6 +687,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 48,
     posterSrc: p("iron-fist-s2"),
+    synopsis:"Danny Rand has embraced his role as the protector of New York, determined to honor his promise to defend the city in Daredevil’s absence. But peace is short-lived when new enemies rise, and old rivalries resurface. As Danny struggles to balance his personal life with the burden of the Iron Fist, he faces Davos—once his brother-in-arms, now a deadly adversary who seeks to claim the mystical power for himself. With Colleen Wing by his side, Danny must confront betrayal, responsibility, and the true meaning of being the Immortal Iron Fist. In a season of growth and conflict, his greatest challenge is not just wielding the power—but proving he deserves it.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "daredevil-s3",
@@ -536,6 +700,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 49,
     posterSrc: p("daredevil-s3"),
+    synopsis:"After barely surviving the collapse of Midland Circle, Matt Murdock is broken in body and spirit, questioning his faith and his role as Daredevil. As he hides from the world, a familiar enemy rises stronger than ever—Wilson Fisk, the Kingpin, who manipulates the system to reclaim power and control over New York. With Fisk unleashing a deadly imposter to tarnish Daredevil’s name, Matt must confront his deepest fears, rediscover his strength, and embrace the darkness within to protect the city he loves. In a season of redemption and reckoning, Daredevil learns that sometimes the only way to fight evil is to walk dangerously close to it.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "the-punisher-s2",
@@ -546,6 +713,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 50,
     posterSrc: p("the-punisher-s2"),
+    synopsis:"Frank Castle tries to leave his violent past behind, wandering the country in search of peace. But when he stumbles upon a young woman hunted by ruthless killers, he’s pulled back into the shadows of war. As conspiracies unfold and old enemies resurface—including Billy Russo, scarred and vengeful—Castle is forced to embrace the mantle of the Punisher once more. With his code of justice tested and his humanity on the line, Frank must decide whether he’s fighting for redemption—or simply feeding the endless cycle of blood and vengeance.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "captain-marvel-2019",
@@ -556,6 +726,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 51,
     posterSrc: p("captain-marvel-2019"),
+    synopsis:"Set in the 1990s, Captain Marvel tells the origin story of Carol Danvers, a former U.S. Air Force pilot who becomes one of the universe’s most powerful heroes. When she’s caught in the middle of a galactic war between the Kree and the Skrulls, Carol must uncover the truth about her mysterious past and the hidden potential within her. Guided by Nick Fury before the Avengers initiative was born, she discovers that her greatest strength isn’t just her cosmic powers—it’s her humanity. With blazing energy and unstoppable determination, Captain Marvel rises to become Earth’s mightiest defender.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "jessica-jones-s3",
@@ -566,6 +739,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 52,
     posterSrc: p("jessica-jones-s3"),
+    synopsis:"Haunted by the battles she’s already fought, Jessica Jones tries to rebuild her life as a private investigator. But when a new villain, Gregory Sallinger, emerges—an obsessive killer who targets “frauds” and sets his sights on Jessica—her world is thrown into chaos once again. As she struggles to protect her friends and confront her own vulnerabilities, Jessica must face the darkest corners of her psyche. With Trish Walker stepping into her own dangerous path, the line between hero and vigilante blurs. In a season of betrayal, justice, and reckoning, Jessica learns that sometimes the hardest enemy to fight is the one who knows your weaknesses best.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "avengers-endgame-2019",
@@ -576,6 +752,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 53,
     posterSrc: p("avengers-endgame-2019"),
+    synopsis:"After the devastating snap of Thanos, the universe lies in ruins. The surviving Avengers—broken, grieving, yet unyielding—must find a way to undo the unimaginable loss. With time itself as their battleground, they embark on a daring mission that tests their courage, loyalty, and sacrifice. As past and present collide, heroes rise to their greatest challenge, confronting destiny and the cost of hope. In a climactic showdown, the Avengers prove that even in the face of despair, unity and sacrifice can change the fate of the universe forever.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "spider-man-far-from-home-2019",
@@ -586,6 +765,9 @@ export const titles: Title[] = [
     phase: 3,
     recommendedOrder: 54,
     posterSrc: p("spider-man-far-from-home-2019"),
+    synopsis:"Still mourning the loss of his mentor Tony Stark, Peter Parker seeks a break from heroics on a school trip across Europe. But when elemental creatures wreak havoc, Nick Fury recruits Spider-Man to join forces with the enigmatic Mysterio. As Peter struggles with the weight of responsibility and the desire for a normal life, he learns that appearances can be deceiving—and trust can be dangerous. In a journey that tests his courage, heart, and identity, Spider-Man must rise above illusions to protect both his friends and the world.",
+    watchUrl:"",
+    trailerUrl:"",
   },
 
   // =======================
@@ -599,6 +781,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 55,
     posterSrc: p("x-men-origins-wolverine-2009"),
+    synopsis:"Before he was an X-Man, he was a soldier, a brother, and a weapon. X-Men Origins: Wolverine explores the untold story of Logan, tracing his journey from childhood tragedy to his time in the Weapon X program. Betrayed by those he trusted and haunted by his violent past, Wolverine faces enemies both old and new—including his ruthless half-brother, Victor Creed. As his claws and rage are sharpened by loss, Logan discovers the cost of vengeance and the painful truth behind his indestructible skeleton. This is the beginning of the legend, forged in blood, betrayal, and adamantium.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "x-men-first-class-2011",
@@ -608,6 +793,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 56,
     posterSrc: p("x-men-first-class-2011"),
+    synopsis:"Before they were Professor X and Magneto, they were Charles Xavier and Erik Lehnsherr—two men bound by friendship, divided by ideology. Set against the backdrop of the Cold War, X-Men: First Class explores the origins of the mutant struggle, as Charles and Erik unite a team of young mutants to stop a global catastrophe. But as their powers grow and their philosophies clash, the seeds of the legendary conflict between the X-Men and the Brotherhood are sown. With loyalty, betrayal, and destiny colliding, this is the story of how heroes and villains are born.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "the-wolverine-2013",
@@ -617,6 +805,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 57,
     posterSrc: p("the-wolverine-2013"),
+    synopsis:"Haunted by the ghosts of his past, Logan travels to Japan, where he is drawn into a world of honor, betrayal, and deadly conflict. When an old acquaintance offers him the chance to shed his immortality, Wolverine faces his most personal battle yet—one that pits his humanity against his rage. As he confronts powerful samurai, ruthless assassins, and the deadly Silver Samurai, Logan must decide whether the gift of mortality is worth the cost. In a story of sacrifice and redemption, The Wolverine strips the hero down to his core, revealing the man behind the claws.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "x-men-days-of-future-past-2014",
@@ -626,6 +817,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 58,
     posterSrc: p("x-men-days-of-future-past-2014"),
+    synopsis:"In a dark future where mutants face extinction at the hands of unstoppable Sentinels, the X-Men make a desperate gamble. Wolverine is sent back to 1973, tasked with uniting the younger Charles Xavier and Erik Lehnsherr to change history and prevent annihilation. But fractured loyalties, personal demons, and the rise of Mystique’s rebellion threaten to derail the mission. As past and future collide, the fate of both timelines rests on fragile alliances and impossible choices. In a story of redemption, sacrifice, and survival, the X-Men fight not only for their lives—but for the very possibility of hope.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "deadpool-2016",
@@ -635,6 +829,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 59,
     posterSrc: p("deadpool-2016"),
+    synopsis:"Wade Wilson, a former Special Forces operative turned mercenary, undergoes a rogue experiment that leaves him with accelerated healing powers—and a twisted sense of humor. Armed with his new abilities and a sharp tongue, he becomes Deadpool, the “Merc with a Mouth,” on a relentless mission to hunt down the man who nearly destroyed his life. Breaking the fourth wall, skewering superhero conventions, and delivering action with outrageous comedy, Deadpool redefines what it means to be a hero… or at least something close to one.",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "x-men-apocalypse-2016",
@@ -644,6 +841,9 @@ export const titles: Title[] = [
     saga: "Legacy",
     recommendedOrder: 60,
     posterSrc: p("x-men-apocalypse-2016"),
+    synopsis:"",
+    watchUrl:"",
+    trailerUrl:"",
   },
   {
     id: "logan-2017",

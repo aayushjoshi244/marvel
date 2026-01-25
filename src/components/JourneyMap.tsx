@@ -1,81 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { titles, type Title } from "@/data/titles";
 import { useJourney } from "@/store/journey";
-
-type PhaseKey =
-  | "UNSORTED"
-  | "PHASE_1"
-  | "PHASE_2"
-  | "PHASE_3"
-  | "PHASE_4"
-  | "PHASE_5"
-  | "PHASE_6";
-
-type PhaseSection = {
-  key: PhaseKey;
-  title: string;
-  subtitle: string;
-  bg: string;
-  filter: (t: Title) => boolean;
-};
-
-const PHASES: PhaseSection[] = [
-  {
-    key: "UNSORTED",
-    title: "Prologue",
-    subtitle: "The essentials before the saga locks in.",
-    bg: "/journey/unsorted.jpg",
-    filter: (t) => !t.phase || t.phase === 0,
-  },
-  {
-    key: "PHASE_1",
-    title: "Phase 1",
-    subtitle: "The origin spark.",
-    bg: "/journey/phase-1.jpg",
-    filter: (t) => t.phase === 1,
-  },
-  {
-    key: "PHASE_2",
-    title: "Phase 2",
-    subtitle: "The world expands.",
-    bg: "/journey/phase-2.jpg",
-    filter: (t) => t.phase === 2,
-  },
-  {
-    key: "PHASE_3",
-    title: "Phase 3",
-    subtitle: "The war for everything.",
-    bg: "/journey/phase-3.jpg",
-    filter: (t) => t.phase === 3,
-  },
-  {
-    key: "PHASE_4",
-    title: "Phase 4",
-    subtitle: "The multiverse booms",
-    bg: "/journey/phase-4.jpg",
-    filter: (t) => t.phase === 4,
-  },
-  {
-    key: "PHASE_5",
-    title: "Phase 5",
-    subtitle: "The multiversal icidents.",
-    bg: "/journey/phase-5.jpg",
-    filter: (t) => t.phase === 5,
-  },
-  {
-    key: "PHASE_6",
-    title: "Phase 6",
-    subtitle: "The doom effect comming.",
-    bg: "/journey/phase-6.jpg",
-    filter: (t) => t.phase === 6,
-  },
-];
+import TitleDetailsModal from "@/components/TitleDetailsModal";
+import JourneyScene from "@/components/journey/JourneyScene";
 
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
@@ -140,247 +72,16 @@ function JourneyDialog({
   );
 }
 
-type Pt = { x: number; y: number };
-
-function catmullRomPath(points: Pt[]) {
-  if (points.length < 2) return "";
-  const d: string[] = [`M ${points[0].x} ${points[0].y}`];
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(i - 1, 0)];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[Math.min(i + 2, points.length - 1)];
-
-    const c1x = p1.x + (p2.x - p0.x) / 6;
-    const c1y = p1.y + (p2.y - p0.y) / 6;
-    const c2x = p2.x - (p3.x - p1.x) / 6;
-    const c2y = p2.y - (p3.y - p1.y) / 6;
-
-    d.push(`C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`);
-  }
-
-  return d.join(" ");
-}
-
-function PhasePath({
-  items,
-  currentIndexGlobal,
-  watched,
-  onLockedClick,
-}: {
-  items: Title[];
-  currentIndexGlobal: number;
-  watched: Record<string, boolean>;
-  onLockedClick: () => void;
-}) {
-  const router = useRouter();
-  const ordered = useMemo(
-    () => [...items].sort((a, b) => a.recommendedOrder - b.recommendedOrder),
-    [items],
-  );
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const completedCount = ordered.filter((t) => watched[t.id]).length;
-  const total = ordered.length;
-  const progress = total ? completedCount / total : 0;
-
-  // ---- SIZING (fits for large phases) ----
-  const BOX = 700;
-  const cx = BOX / 2;
-  const cy = BOX / 2;
-
-  // smaller nodes when lots of items
-  const nodeSize = total >= 30 ? 44 : total >= 22 ? 50 : 56;
-  const safeMargin = 18 + nodeSize / 2;
-  const maxR = cx - safeMargin;
-
-  // Spiral shape control:
-  // turns: how many loops; radius grows from minR -> maxR
-  const turns = total >= 28 ? 2.8 : total >= 20 ? 2.4 : 2.0;
-  const minR = 100; // keep centre clear for the core ring
-
-  const pts: Pt[] = useMemo(() => {
-    if (total === 0) return [];
-    if (total === 1) return [{ x: cx, y: cy - minR }];
-
-    const out: Pt[] = [];
-    for (let i = 0; i < total; i++) {
-      const t = i / (total - 1); // 0..1
-      const angle = -Math.PI / 2 + t * turns * Math.PI * 2;
-      const r = minR + t * (maxR - minR);
-
-      out.push({
-        x: cx + Math.cos(angle) * r,
-        y: cy + Math.sin(angle) * r,
-      });
-    }
-    return out;
-  }, [total, cx, cy, minR, maxR, turns]);
-
-  const spiralD = useMemo(() => catmullRomPath(pts), [pts]);
-
-  return (
-    <div className="mt-10 flex justify-center">
-      <div className="relative" style={{ width: BOX, height: BOX }}>
-        {/* ===== CURVATURE / ORBIT LINE ===== */}
-        {mounted && (
-          <svg className="pointer-events-none absolute inset-0 h-full w-full">
-            {/* soft glow */}
-            <path
-              d={spiralD}
-              fill="none"
-              stroke="rgba(239,68,68,0.18)"
-              strokeWidth="10"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* crisp line */}
-            <path
-              d={spiralD}
-              fill="none"
-              stroke="rgba(239,68,68,0.35)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-
-        {/* ===== VAULT CORE ===== */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg className="absolute h-[260px] w-[260px]">
-            <circle
-              cx="130"
-              cy="130"
-              r="112"
-              stroke="rgba(255,255,255,0.08)"
-              strokeWidth="14"
-              fill="none"
-            />
-            <circle
-              cx="130"
-              cy="130"
-              r="112"
-              stroke="rgba(239,68,68,0.75)"
-              strokeWidth="14"
-              fill="none"
-              strokeDasharray={`${progress * 2 * Math.PI * 112} ${2 * Math.PI * 112}`}
-              strokeLinecap="round"
-              transform="rotate(-90 130 130)"
-              className="drop-shadow-[0_0_18px_rgba(239,68,68,0.6)]"
-            />
-          </svg>
-
-          <div className="relative h-28 w-28 rounded-full bg-black">
-            <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(239,68,68,0.45),transparent_60%)]" />
-            <div className="absolute inset-0 rounded-full border border-white/10 shadow-[0_0_40px_rgba(239,68,68,0.35)]" />
-            <div className="relative flex h-full w-full flex-col items-center justify-center text-center">
-              <span className="text-[11px] tracking-widest text-white/60">
-                PHASE CORE
-              </span>
-              <span className="mt-1 text-sm font-semibold">
-                {Math.round(progress * 100)}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ===== NODES ===== */}
-        {ordered.map((t, i) => {
-          const p = pts[i];
-          if (!p) return null;
-
-          const isWatched = !!watched[t.id];
-          const isNext =
-            !isWatched && t.recommendedOrder === currentIndexGlobal;
-          const isLocked =
-            !isWatched && t.recommendedOrder > currentIndexGlobal;
-
-          const ring = isNext
-            ? "ring-2 ring-red-500/80 shadow-[0_0_25px_rgba(239,68,68,0.6)]"
-            : isWatched
-              ? "ring-1 ring-emerald-400/40"
-              : "ring-1 ring-white/10";
-
-          return (
-            <motion.button
-              key={t.id}
-              whileHover={{ scale: isLocked ? 1 : 1.05 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => {
-                if (isLocked) onLockedClick();
-                else router.push(`/title/${(t as any).slug ?? t.id}`);
-              }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 ${ring}
-                rounded-xl border border-white/10 bg-white/5 backdrop-blur-md overflow-hidden transition`}
-              style={{
-                left: `${p.x.toFixed(3)}px`,
-                top: `${p.y.toFixed(3)}px`,
-                width: `${nodeSize}px`,
-                height: `${nodeSize}px`,
-
-                // match server’s expanded border radius output
-                borderTopLeftRadius: "14px",
-                borderTopRightRadius: "14px",
-                borderBottomRightRadius: "14px",
-                borderBottomLeftRadius: "14px",
-              }}
-              title={t.name}
-            >
-              <div className="absolute inset-0 opacity-85">
-                <Image
-                  src={t.posterSrc}
-                  alt=""
-                  fill
-                  sizes="64px"
-                  className={`object-cover ${isLocked ? "blur-[2px] opacity-30" : "opacity-80"}`}
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/80" />
-              </div>
-
-              <div className="relative grid h-full w-full place-items-center">
-                {isWatched ? (
-                  <span className="text-xs font-semibold text-emerald-300">
-                    ✓
-                  </span>
-                ) : isNext ? (
-                  <motion.span
-                    className="h-2.5 w-2.5 rounded-full bg-red-500"
-                    animate={{
-                      boxShadow: [
-                        "0 0 0px rgba(239,68,68,0.0)",
-                        "0 0 18px rgba(239,68,68,0.55)",
-                        "0 0 0px rgba(239,68,68,0.0)",
-                      ],
-                    }}
-                    transition={{ duration: 1.1, repeat: Infinity }}
-                  />
-                ) : (
-                  <span className="text-[10px] text-white/60">•</span>
-                )}
-              </div>
-
-              {isLocked && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 export default function JourneyMap() {
   const router = useRouter();
   const watched = useJourney((s) => s.watched);
   const [lockedDialog, setLockedDialog] = useState(false);
   const hydrate = useJourney((s) => s.hydrate);
+  const toggleWatched = useJourney((s) => s.toggleWatched);
+
+  const [selected, setSelected] = useState<Title | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
     hydrate();
@@ -407,132 +108,169 @@ export default function JourneyMap() {
   const pct = total ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      {/* global background */}
-      <div className="pointer-events-none fixed inset-0 opacity-40">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,0,0,0.18),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.06),transparent_35%),radial-gradient(circle_at_50%_80%,rgba(255,0,0,0.10),transparent_45%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/65 to-black" />
-      </div>
+    <main className="relative h-screen w-full bg-black text-white overflow-hidden">
+      {" "}
+      {/* Ensure full screen and no scroll on body if using ScrollControls inside */}
+      {/* 3D Scene */}
+      <JourneyScene
+        titles={ordered}
+        watched={watched}
+        currentOrder={currentOrder}
+        onNodeClick={(t) => {
+          setSelected(t);
+          setDetailsOpen(true);
+        }}
+        onLockedClick={() => setLockedDialog(true)}
+        started={started}
+      />
+      {/* Overlay UI */}
+      <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+        {/* Header / Intro Section */}
+        <motion.div 
+            layout
+            className="absolute p-6 flex flex-col items-start"
+            initial={{ top: "30%", left: "50%", x: "-50%", y: "-50%", scale: 1.2 }}
+            animate={
+                !started 
+                ? { top: "40%", left: "50%", x: "-50%", y: "-50%", scale: 1.2 } 
+                : { top: 0, left: 0, x: 0, y: 0, scale: 0.8 }
+            }
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+        >
+             {!started && (
+                <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
+                    className="mb-6 flex flex-col items-center text-center space-y-4"
+                >
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/70 backdrop-blur-md">
+                        <span className="h-2 w-2 rounded-full bg-red-500" />
+                        Strict campaign journey
+                    </div>
+                </motion.div>
+             )}
 
+             <div className={`${!started ? "text-center" : "text-left"}`}>
+                {!started && (
+                    <Link
+                        href="/"
+                        className="mb-4 text-sm text-white/60 hover:text-white/85 pointer-events-auto inline-block"
+                    >
+                        ← Back to Home
+                    </Link>
+                )}
+                 {started && (
+                    <Link
+                        href="/"
+                        className="text-sm text-white/60 hover:text-white/85 pointer-events-auto inline-block mb-2"
+                    >
+                        ← Exit
+                    </Link>
+                )}
+
+                <motion.h1 
+                    layout="position"
+                    className="text-4xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent md:text-6xl"
+                >
+                    Cosmic Journey
+                </motion.h1>
+                
+                {started && (
+                     <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="text-white/60 text-xs mt-1 max-w-xs"
+                    >
+                        Scroll to traverse
+                    </motion.p>
+                )}
+
+                {!started && (
+                     <motion.p 
+                        className="mt-4 max-w-lg text-sm text-white/65 mx-auto"
+                    >
+                        Clear the path level-by-level. Your next step is always
+                        highlighted. Begin your journey through the multiverse.
+                    </motion.p>
+                )}
+
+                {!started && (
+                    <div className="mt-8 pointer-events-auto">
+                        <button 
+                            onClick={() => setStarted(true)}
+                            className="bg-white text-black px-8 py-3 rounded-full font-bold text-lg hover:bg-white/90 transition shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                        >
+                            Enter Simulation
+                        </button>
+                    </div>
+                )}
+             </div>
+        </motion.div>
+
+        {/* Stats / HUD (Only visible after start) */}
+        <motion.div 
+            initial={{ opacity: 0, x: 100 }}
+            animate={started ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="absolute top-24 right-6 pointer-events-auto bg-black/60 backdrop-blur-md rounded-2xl p-5 border border-white/10 w-80"
+        >
+             <div className="flex items-center justify-between text-xs text-white/60 mb-2">
+                 <span>Campaign Progress</span>
+                 <span>
+                     {completed}/{total} ({pct}%)
+                 </span>
+             </div>
+
+             <div className="h-2 w-full overflow-hidden rounded-full bg-white/10 mb-4">
+                 <div
+                     className="h-full bg-red-600 transition-all"
+                     style={{ width: `${clamp(pct, 0, 100)}%` }}
+                 />
+             </div>
+
+             <div className="flex gap-3">
+                 <Link
+                     href="/timeline"
+                     className="flex-1 rounded-lg border border-white/12 bg-white/5 px-3 py-2 text-center text-xs font-semibold text-white/90 transition hover:bg-white/10"
+                 >
+                     Timeline
+                 </Link>
+
+                 <button
+                     onClick={() => {
+                         const next = ordered.find((t) => !watched[t.id]);
+                         if (next) router.push(`/title/${next.id}`);
+                     }}
+                     className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500"
+                 >
+                     Resume
+                 </button>
+             </div>
+        </motion.div>
+      </div>
+      
       <JourneyDialog
         open={lockedDialog}
         onClose={() => setLockedDialog(false)}
       />
-
-      <section className="relative mx-auto max-w-6xl px-6 pb-10 pt-12">
-        <Link href="/" className="text-sm text-white/60 hover:text-white/85">
-          ← Back to Home
-        </Link>
-
-        <div className="mt-6 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/70">
-              <span className="h-2 w-2 rounded-full bg-red-500" />
-              Strict campaign journey
-            </div>
-
-            <h1 className="mt-5 text-4xl font-semibold leading-tight md:text-6xl">
-              Start the Marvelous Journey
-            </h1>
-
-            <p className="mt-3 max-w-2xl text-sm text-white/65">
-              Clear the path level-by-level. Your next step is always
-              highlighted. If you want to watch freely, use the Timeline.
-            </p>
-          </div>
-
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/5 p-5">
-            <div className="flex items-center justify-between text-xs text-white/60">
-              <span>Progress</span>
-              <span>
-                {completed}/{total} ({pct}%)
-              </span>
-            </div>
-
-            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
-              <div
-                className="h-full bg-red-600 transition-all"
-                style={{ width: `${clamp(pct, 0, 100)}%` }}
-              />
-            </div>
-
-            <div className="mt-4 flex gap-3">
-              <Link
-                href="/timeline"
-                className="flex-1 rounded-xl border border-white/12 bg-white/5 px-4 py-2 text-center text-sm font-semibold text-white/90 transition hover:bg-white/10"
-              >
-                Timeline
-              </Link>
-
-              <button
-                onClick={() => {
-                  const next = ordered.find((t) => !watched[t.id]);
-                  if (next) router.push(`/title/${next.id}`);
-                }}
-                className="flex-1 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500"
-              >
-                Next Level
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Phase sections */}
-      {PHASES.map((ph) => {
-        const list = ordered.filter(ph.filter);
-        if (!list.length) return null;
-
-        return (
-          <section
-            key={ph.key}
-            className="relative mx-auto max-w-6xl px-6 pb-16"
-          >
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
-              {/* blended background */}
-              <div className="absolute inset-0">
-                <Image
-                  src={ph.bg}
-                  alt=""
-                  fill
-                  sizes="(max-width: 768px) 100vw, 1100px"
-                  priority={ph.key === "PHASE_1"}
-                  className="object-cover opacity-35"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/55 to-black" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/85" />
-              </div>
-
-              <div className="relative p-7 md:p-10">
-                <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-3 py-1 text-[11px] tracking-widest text-white/70">
-                      JOURNEY LANE
-                    </div>
-
-                    <h2 className="mt-4 text-2xl font-semibold md:text-3xl">
-                      {ph.title}
-                    </h2>
-
-                    <p className="mt-2 text-sm text-white/65">{ph.subtitle}</p>
-                  </div>
-
-                  <div className="text-xs text-white/60">
-                    {list.length} levels
-                  </div>
-                </div>
-
-                <PhasePath
-                  items={list}
-                  currentIndexGlobal={currentOrder}
-                  watched={watched}
-                  onLockedClick={() => setLockedDialog(true)}
-                />
-              </div>
-            </div>
-          </section>
-        );
-      })}
+      <TitleDetailsModal
+        open={detailsOpen}
+        title={selected}
+        isWatched={selected ? !!watched[selected.id] : false}
+        isNext={
+          selected
+            ? !watched[selected.id] &&
+              selected.recommendedOrder === currentOrder
+            : false
+        }
+        onClose={() => setDetailsOpen(false)}
+        onToggleWatched={() => {
+          if (!selected) return;
+          toggleWatched(selected.id);
+        }}
+      />
     </main>
   );
 }
