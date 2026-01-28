@@ -8,47 +8,58 @@ interface PhaseBackgroundProps {
   imageUrl: string;
   title: string;
   subtitle: string;
+  active: number; // ✅ NEW
 }
 
-export function PhaseBackground({ position, imageUrl, title, subtitle }: PhaseBackgroundProps) {
+export function PhaseBackground({
+  position,
+  imageUrl,
+  title,
+  subtitle,
+  active,
+}: PhaseBackgroundProps) {
+  // fade range
+  const a = THREE.MathUtils.clamp(active, 0, 1);
+
+  // if far away, don’t render at all (performance)
+  if (a < 0.02) return null;
+
   return (
-    <group position={position}>
-      {/* Large background poster */}
+    <group position={position} rotation={[0, Math.PI / 10, 0]}>
+      {/* Poster */}
       <Image
         url={imageUrl}
         scale={[70, 45]}
         transparent
-        opacity={0.15}
-        position={[-35, 0, -15]} // To the left side
-        rotation={[0, Math.PI / 6, 0]} // Angled towards center
-        grayscale={0.6}
+        opacity={0.22 * a}       // ✅ fade in
+        grayscale={0.45}
+        toneMapped={false}
       />
-      
-      {/* Phase Title */}
+
+      {/* Title */}
       <Text
-        position={[-25, 12, -10]}
-        rotation={[0, Math.PI / 6, 0]}
+        position={[0, 16, 0.2]}
         fontSize={5}
         color="white"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.05}
+        outlineWidth={0.06}
         outlineColor="#000"
-        fillOpacity={0.9}
+        fillOpacity={0.95 * a}
       >
         {title.toUpperCase()}
       </Text>
 
       {/* Subtitle */}
       <Text
-        position={[-25, 8, -10]}
-        rotation={[0, Math.PI / 6, 0]}
-        fontSize={1.2}
+        position={[0, 11, 0.2]}
+        fontSize={1.4}
         color="#ffffffcc"
         anchorX="center"
         anchorY="middle"
-        maxWidth={25}
+        maxWidth={28}
         textAlign="center"
+        fillOpacity={0.85 * a}
       >
         {subtitle}
       </Text>

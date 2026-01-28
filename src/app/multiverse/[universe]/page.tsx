@@ -15,7 +15,7 @@ export default async function UniverseDetailPage({
 }: {
   params: Promise<{ universe: string }>;
 }) {
-  const { universe: universeSlug } = await params;
+  const {universe: universeSlug} = await params;
   const universe = decodeURIComponent(universeSlug);
 
   const list = titles
@@ -34,7 +34,9 @@ export default async function UniverseDetailPage({
           ← Back to Multiverse
         </Link>
 
-        <h1 className="mt-4 text-3xl font-semibold md:text-5xl">{universe}</h1>
+        <h1 className="mt-4 text-3xl font-semibold md:text-5xl">
+          {universe}
+        </h1>
         <p className="mt-3 text-white/65">{list.length} titles</p>
 
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">

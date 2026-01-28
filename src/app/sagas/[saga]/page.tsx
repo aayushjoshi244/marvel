@@ -19,7 +19,8 @@ export default async function SagaDetailPage({
   params: Promise<{ saga: string }>;
 }) {
   await devDeplay(4000);
-  const { saga: sagaSlug } = await params;
+
+  const {saga:sagaSlug} = await params;
 
   const saga = slugToSaga(sagaSlug);
   if (!saga) return notFound();
@@ -31,10 +32,7 @@ export default async function SagaDetailPage({
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-6 pt-12 pb-8">
-        <Link
-          href="/sagas"
-          className="text-sm text-white/60 hover:text-white/85"
-        >
+        <Link href="/sagas" className="text-sm text-white/60 hover:text-white/85">
           ← Back to Sagas
         </Link>
 

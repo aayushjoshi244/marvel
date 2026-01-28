@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState, useEffect, Suspense } from "react";
+import { useMemo, useRef, useEffect, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { ScrollControls, useScroll } from "@react-three/drei";
+import { ScrollControls, useScroll, Preload } from "@react-three/drei";
 import * as THREE from "three";
+
 import { type Title } from "@/data/titles";
+import { PHASES, type PhaseSection } from "@/data/phases";
+
 import { NebulaBackground } from "./NebulaBackground";
 import { CosmicPath, CosmicPathGlow } from "./CosmicPath";
 import { MovieNode } from "./MovieNode";
-import { PHASES, type PhaseSection } from "@/data/phases";
-import { PhaseBackground } from "./PhaseBackground";
+import { PhaseGate } from "./PhaseGate"; // ✅ NEW
 
 interface JourneySceneProps {
   titles: Title[];
@@ -20,13 +22,18 @@ interface JourneySceneProps {
   started: boolean;
 }
 
-// Helper to get spiral point
-function getSpiralPoint(t: number, radius: number = 10) {
-  const angle = t; 
-  const x = Math.cos(angle) * radius;
-  const y = Math.sin(angle) * radius;
-  return new THREE.Vector3(x, y, 0); // Z will be set by the layout
-}
+type Layout = {
+  curve: THREE.CatmullRomCurve3;
+  titlePositions: { id: string; pos: THREE.Vector3 }[];
+  phaseDecorations: {
+    phase: PhaseSection;
+    pos: THREE.Vector3;
+    u: number;
+  }[];
+  totalLength: number;
+};
+
+/* ================= Scene Content ================= */
 
 function SceneContent({
   titles,
@@ -35,170 +42,232 @@ function SceneContent({
   onNodeClick,
   onLockedClick,
   started,
-}: JourneySceneProps) {
+  layout,
+}: JourneySceneProps & { layout: Layout }) {
   const scroll = useScroll();
+  const { curve, titlePositions, phaseDecorations } = layout;
 
-  // We need to pre-calculate the layout to know where everything is.
-  const { curve, titlePositions, phaseDecorations, totalLength } = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
-    const titlePos: { id: string; pos: THREE.Vector3 }[] = [];
-    const phaseDecos: { phase: PhaseSection; pos: THREE.Vector3 }[] = [];
+  // Camera math helpers
 
-    const radius = 12;
-    const heightStep = 5; // Vertical distance per item
-    const angleStep = 0.6; // Radians per item
-    const phaseGap = 30; // Gap between phases
+  const worldUp = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const altUp = useMemo(() => new THREE.Vector3(0, 0, 1), []);
+  const tmpTangent = useMemo(() => new THREE.Vector3(), []);
+  const tmpNormal = useMemo(() => new THREE.Vector3(), []);
+  const tmpBinormal = useMemo(() => new THREE.Vector3(), []);
+  const tmpPos = useMemo(() => new THREE.Vector3(), []);
 
-    let currentZ = 0;
-    let currentAngle = 0;
+  const didSnapRef = useRef(false);
 
-    // Start padding
-    pts.push(new THREE.Vector3(0, 0, 10));
-    pts.push(new THREE.Vector3(0, 0, 0));
+  useEffect(() => {
+    if (!started) didSnapRef.current = false;
+  }, [started]);
 
-    PHASES.forEach((phase) => {
-      const phaseTitles = titles.filter(phase.filter);
-      if (phaseTitles.length === 0) return;
+  /* -------- Camera movement -------- */
+  useFrame((state) => {
+    if (!started || !curve) return;
 
-      // Start of phase
-      const phaseStartZ = currentZ;
+    const rawT = scroll.offset;
+    if (!Number.isFinite(rawT)) return;
 
-      // Place background approx in the middle of where this phase will be
-      // We don't know exact length yet, but we can estimate: length * heightStep
-      // But we are building it sequentially.
-      
-      phaseTitles.forEach((t: Title) => {
-        currentZ -= heightStep;
-        currentAngle += angleStep;
+    const t = THREE.MathUtils.clamp(rawT, 0, 1);
 
-        const x = Math.cos(currentAngle) * radius;
-        const y = Math.sin(currentAngle) * radius;
-        const p = new THREE.Vector3(x, y, currentZ);
-        
-        pts.push(p);
-        titlePos.push({ id: t.id, pos: p });
-      });
+    const point = curve.getPointAt(t);
+    const tangent = curve.getTangentAt(t);
+    if (!point || !tangent) return;
 
-      // End of phase
-      const phaseEndZ = currentZ;
-      const phaseCenterZ = (phaseStartZ + phaseEndZ) / 2;
-      
-      phaseDecos.push({
-        phase,
-        pos: new THREE.Vector3(0, 0, phaseCenterZ),
-      });
+    tmpTangent.copy(tangent).normalize();
+    const upVec = Math.abs(tmpTangent.dot(worldUp)) > 0.98 ? altUp : worldUp;
 
-      // Gap after phase
-      currentZ -= phaseGap;
-      // Add a couple of points in the gap to keep the curve smooth? 
-      // Or just letting the spline handle it (might cut through center)
-      // Let's add an intermediate point to guide the camera nicely through the void
-      // spiraling a bit or straight? Straight is safer for "warp" feel.
-      pts.push(new THREE.Vector3(0, 0, currentZ + (phaseGap/2))); 
-    });
+    tmpNormal.crossVectors(upVec, tmpTangent).normalize();
+    tmpBinormal.crossVectors(tmpTangent, tmpNormal).normalize();
 
-    // End padding
-    pts.push(new THREE.Vector3(0, 0, currentZ - 20));
+    tmpPos.copy(point);
+    tmpPos.addScaledVector(tmpNormal, 8);
+    tmpPos.addScaledVector(tmpBinormal, 4);
+    tmpPos.addScaledVector(tmpTangent, -14);
 
-    const c = new THREE.CatmullRomCurve3(pts);
-    return { 
-        curve: c, 
-        titlePositions: titlePos, 
-        phaseDecorations: phaseDecos, 
-        totalLength: Math.abs(currentZ) 
-    };
-  }, [titles]);
-
-  useFrame((state, delta) => {
-    // If not started, slow float or static
-    if (!started) {
-       // Optional: slow rotation or drift
-       return; 
+    if (!didSnapRef.current) {
+      state.camera.position.copy(tmpPos);
+      didSnapRef.current = true;
+    } else {
+      state.camera.position.lerp(tmpPos, 0.12);
     }
 
-    // scroll.offset (0..1) mapping to the curve
-    const t = scroll.offset;
-    
-    // Safety check
-    if (t < 0 || t > 1) return;
-
-    const point = curve.getPoint(t);
-    
-    // Camera move logic
-    const cameraOffset = new THREE.Vector3(0, 4, 12);
-    const cameraPos = point.clone().add(cameraOffset);
-    
-    state.camera.position.lerp(cameraPos, 0.1);
-    
-    const lookAtT = Math.min(t + 0.02, 1);
-    const lookAtPoint = curve.getPoint(lookAtT);
-    state.camera.lookAt(lookAtPoint);
+    const lookAt = curve.getPointAt(Math.min(t + 0.02, 1));
+    if (lookAt) state.camera.lookAt(lookAt);
   });
 
   return (
     <>
-import { NebulaBackground } from "./NebulaBackground";
-
-// ... (in SceneContent return)
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} intensity={1} />
-      
+
+      {/* Always visible background */}
       <NebulaBackground />
-      <CosmicPath curve={curve} />
-      <CosmicPathGlow curve={curve} />
 
-      {/* Render Phase Backgrounds */}
-      {phaseDecorations.map((pd) => (
-        <PhaseBackground 
-            key={pd.phase.key}
-            position={pd.pos}
-            imageUrl={pd.phase.bg}
-            title={pd.phase.title}
-            subtitle={pd.phase.subtitle}
-        />
-      ))}
+      {started && (
+        <>
+          <CosmicPath curve={curve} />
+          <CosmicPathGlow curve={curve} />
 
-      {/* Render Nodes */}
-      {titlePositions.map(({ id, pos }) => {
-        const title = titles.find(t => t.id === id);
-        if (!title) return null;
+          {/* ---------- Phase Gates ---------- */}
+          {phaseDecorations.map((pd) => {
+            const dist = Math.abs(scroll.offset - pd.u);
+            const active = THREE.MathUtils.clamp(1 - dist / 0.15, 0, 1);
 
-        const isWatched = !!watched[title.id];
-        let status: "watched" | "next" | "locked" = "locked";
-        if (isWatched) status = "watched";
-        else if (title.recommendedOrder === currentOrder) status = "next";
+            return (
+              <PhaseGate
+                key={pd.phase.key}
+                position={pd.pos}
+                title={pd.phase.title}
+                subtitle={pd.phase.subtitle}
+                active={active}
+                imageUrl={pd.phase.bg} // ✅ this embeds the poster inside the portal
+                size={1.25} // ✅ increase portal size
+                mode="cover" // ✅ best look for posters
+              />
+            );
+          })}
 
-        return (
-          <MovieNode
-            key={id}
-            title={title}
-            position={pos}
-            status={status}
-            onClick={(t) => {
-               if (status === 'locked') onLockedClick();
-               else onNodeClick(t);
-            }}
-          />
-        );
-      })}
+          {/* ---------- Movie Nodes ---------- */}
+          {titlePositions.map(({ id, pos }) => {
+            const title = titles.find((t) => t.id === id);
+            if (!title) return null;
+
+            const isWatched = !!watched[title.id];
+            let status: "watched" | "next" | "locked" = "locked";
+            if (isWatched) status = "watched";
+            else if (title.recommendedOrder === currentOrder) status = "next";
+
+            return (
+              <MovieNode
+                key={id}
+                title={title}
+                position={pos}
+                status={status}
+                onClick={(t) =>
+                  status === "locked" ? onLockedClick() : onNodeClick(t)
+                }
+              />
+            );
+          })}
+        </>
+      )}
     </>
   );
 }
 
+/* ================= Main Scene ================= */
+
 export default function JourneyScene(props: JourneySceneProps) {
-  // Approximate pages: total items / 5 items per screen height roughly
-  // Adjust based on feel.
-  const pageCount = Math.max(2, props.titles.length / 4);
+  const layout: Layout = useMemo(() => {
+    const pts: THREE.Vector3[] = [];
+    const titlePos: { id: string; pos: THREE.Vector3 }[] = [];
+    const phaseDecorations: {
+      phase: PhaseSection;
+      pos: THREE.Vector3;
+      u: number;
+    }[] = [];
+
+    const radius = 12;
+    const heightStep = 5;
+    const angleStep = 0.6;
+    const phaseGap = 30;
+
+    let currentZ = 0;
+    let currentAngle = 0;
+
+    // start points
+    pts.push(new THREE.Vector3(0, 0, 10));
+    pts.push(new THREE.Vector3(0, 0, 0));
+
+    // 1) Build all points for the spiral path
+    PHASES.forEach((phase) => {
+      const phaseTitles = props.titles.filter(phase.filter);
+      if (!phaseTitles.length) return;
+
+      phaseTitles.forEach((t) => {
+        currentZ -= heightStep;
+        currentAngle += angleStep;
+
+        const x = Math.cos(currentAngle) * radius;
+        const y =
+          Math.sin(currentAngle) * radius * 0.6 +
+          Math.sin(currentAngle * 0.8) * 2;
+
+        const p = new THREE.Vector3(x, y, currentZ);
+        pts.push(p);
+      });
+
+      // phase gap connector
+      currentZ -= phaseGap;
+      pts.push(new THREE.Vector3(0, 0, currentZ));
+    });
+
+    // end point
+    pts.push(new THREE.Vector3(0, 0, currentZ - 20));
+
+    // ✅ curve exists NOW
+    const curve = new THREE.CatmullRomCurve3(pts);
+
+    // total length (for scroll pages)
+    const totalLength = Math.abs(currentZ);
+
+    // 2) Place movie nodes ON the curve using equal spacing
+    //    (this fixes posters floating randomly + keeps them aligned)
+    const allTitles = props.titles;
+    const N = Math.max(1, allTitles.length);
+
+    for (let i = 0; i < N; i++) {
+      const u = N === 1 ? 0 : i / (N - 1);
+      const p = curve.getPointAt(u).clone();
+      titlePos.push({ id: allTitles[i].id, pos: p });
+    }
+
+    // 3) Place phase gates ON the curve at each phase's center index
+    //    (this guarantees every phase has a gate)
+    let cursor = 0;
+    PHASES.forEach((phase) => {
+      const phaseTitles = props.titles.filter(phase.filter);
+      if (!phaseTitles.length) return;
+
+      const start = cursor;
+      const end = cursor + phaseTitles.length - 1;
+      const mid = Math.floor((start + end) / 2);
+
+      const u = N === 1 ? 0 : mid / (N - 1);
+      const pos = curve.getPointAt(u).clone();
+
+      phaseDecorations.push({
+        phase,
+        pos,
+        u,
+      });
+
+      cursor += phaseTitles.length;
+    });
+
+    return {
+      curve,
+      titlePositions: titlePos,
+      phaseDecorations,
+      totalLength,
+    };
+  }, [props.titles]);
+
+  const pages = Math.max(2, layout.totalLength / 25);
 
   return (
     <div className="w-full h-screen bg-black">
       <Canvas camera={{ position: [0, 5, 10], fov: 60, far: 2000 }}>
-        <color attach="background" args={['#000000']} />
-        <fog attach="fog" args={['#000000', 10, 120]} />
-        <ScrollControls pages={pageCount} damping={0.3} enabled={props.started}>
-             <Suspense fallback={null}>
-                <SceneContent {...props} />
-             </Suspense>
+        <color attach="background" args={["#000"]} />
+        <fog attach="fog" args={["#000", 10, 120]} />
+
+        <ScrollControls pages={pages} damping={0.3} enabled={props.started}>
+          <Suspense fallback={null}>
+            <SceneContent {...props} layout={layout} />
+            <Preload all />
+          </Suspense>
         </ScrollControls>
       </Canvas>
     </div>

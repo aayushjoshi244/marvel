@@ -13,36 +13,48 @@ interface MovieNodeProps {
   onClick: (t: Title) => void;
 }
 
-export function MovieNode({ title, position, status, onClick }: MovieNodeProps) {
+export function MovieNode({
+  title,
+  position,
+  status,
+  onClick,
+}: MovieNodeProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const isLocked = status === "locked";
+  const base = hovered && !isLocked ? 1.25 : hovered ? 1.05 : 1;
 
-  // Animation for "next" status (pulsing)
   useFrame((state) => {
-    if (status === "next" && groupRef.current) {
+    if (!groupRef.current) return;
+    groupRef.current.lookAt(state.camera.position);
+
+    let s = base;
+    if (status === "next") {
       const t = state.clock.getElapsedTime();
-      const scale = 1 + Math.sin(t * 3) * 0.05;
-      groupRef.current.scale.set(scale, scale, scale);
+      s *= 1 + Math.sin(t * 3) * 0.05;
     }
+
+    const current = groupRef.current.scale.x;
+    const next = THREE.MathUtils.lerp(current, s, 0.15);
+    groupRef.current.scale.set(next, next, next);
   });
 
-  const isLocked = status === "locked";
   const grayscale = isLocked ? 1 : 0;
   // Locked nodes are darker/transparent
-  const opacity = isLocked ? 0.3 : 1; 
+  const opacity = isLocked ? 0.3 : 1;
 
   // Enhance scale on hover
   const hoverScale = hovered && !isLocked ? 1.25 : hovered ? 1.05 : 1;
 
   // Glow color based on status
-  const glowColor = status === "watched" ? "#10b981" : status === "next" ? "#ef4444" : "white";
+  const glowColor =
+    status === "watched" ? "#10b981" : status === "next" ? "#ef4444" : "white";
   const showGlow = status === "watched" || status === "next";
 
   return (
     <group
       ref={groupRef}
       position={position}
-      scale={[hoverScale, hoverScale, hoverScale]}
       onClick={(e) => {
         e.stopPropagation();
         onClick(title);
@@ -62,72 +74,85 @@ export function MovieNode({ title, position, status, onClick }: MovieNodeProps) 
       {/* Frame / Border */}
       <mesh position={[0, 0, -0.05]}>
         <planeGeometry args={[3.2, 4.7]} />
+        <meshBasicMaterial color={isLocked ? "#1a1a1a" : "#000"} />
+      </mesh>
+
+      {/* Solar System / Orbit Rings */}
+      {/* Ring 1 - Static */}
+      <mesh position={[0, 0, -0.08]}>
+        <ringGeometry args={[2.5, 2.55, 32]} />
         <meshBasicMaterial
-          color={isLocked ? "#1a1a1a" : "#000"}
+          color={glowColor}
+          transparent
+          opacity={opacity * 0.3}
+          side={THREE.DoubleSide}
         />
       </mesh>
 
-       {/* Solar System / Orbit Rings */}
-       {/* Ring 1 - Static */}
-       <mesh position={[0, 0, -0.08]}>
-          <ringGeometry args={[2.5, 2.55, 32]} />
-          <meshBasicMaterial color={glowColor} transparent opacity={opacity * 0.3} side={THREE.DoubleSide} />
-       </mesh>
+      {/* Ring 2 - Animated/Thicker for active/next */}
+      {showGlow && (
+        <group>
+          <mesh position={[0, 0, -0.1]}>
+            <ringGeometry args={[3.0, 3.08, 64]} />
+            <meshBasicMaterial
+              color={glowColor}
+              transparent
+              opacity={0.6}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+          {/* Dashed outer orbit */}
+          <mesh position={[0, 0, -0.12]} rotation={[0, 0, Math.PI / 4]}>
+            <ringGeometry args={[3.8, 3.82, 64]} />
+            <meshBasicMaterial
+              color={glowColor}
+              transparent
+              opacity={0.2}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </group>
+      )}
 
-       {/* Ring 2 - Animated/Thicker for active/next */}
-       {showGlow && (
-         <group>
-            <mesh position={[0, 0, -0.1]}>
-              <ringGeometry args={[3.0, 3.08, 64]} />
-              <meshBasicMaterial color={glowColor} transparent opacity={0.6} side={THREE.DoubleSide} />
-            </mesh>
-            {/* Dashed outer orbit */}
-            <mesh position={[0, 0, -0.12]} rotation={[0,0, Math.PI / 4]}>
-               <ringGeometry args={[3.8, 3.82, 64]} />
-               <meshBasicMaterial color={glowColor} transparent opacity={0.2} side={THREE.DoubleSide} />
-            </mesh>
-         </group>
-       )}
-       
       {/* "Level Completed" or Status Indicator */}
       {status === "watched" && (
         <group position={[0, 3.2, 0]}>
-            <Text
-                fontSize={0.3}
-                color="#10b981"
-                anchorX="center"
-                anchorY="middle"
-                outlineWidth={0.05}
-                outlineColor="black"
-            >
-                LEVEL CLEARED
-            </Text>
-             <Text
-                position={[0, -0.5, 0]}
-                fontSize={0.6}
-                color="#10b981"
-                anchorX="center"
-                anchorY="middle"
-            >
-                ✓
-            </Text>
+          <Text
+            fontSize={0.3}
+            color="#10b981"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.05}
+            outlineColor="black"
+          >
+            LEVEL CLEARED
+          </Text>
+          <Text
+            position={[0, -0.5, 0]}
+            fontSize={0.6}
+            color="#10b981"
+            anchorX="center"
+            anchorY="middle"
+          >
+            ✓
+          </Text>
         </group>
       )}
-      
+
       {/* "Next Level" Indicator */}
       {status === "next" && (
-         <group position={[0, 3.2, 0]}>
-             <Text
-                fontSize={0.3}
-                color="#ef4444"
-                anchorX="center"
-                anchorY="middle"
-                outlineWidth={0.05}
-                outlineColor="black"
-            >
-                CURRENT MISSION
-            </Text>
-         </group>
+        <group position={[0, 3.2, 0]}>
+          <Text
+            fontSize={0.3}
+            color="#ef4444"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.05}
+            outlineColor="black"
+          >
+            CURRENT MISSION
+          </Text>
+        </group>
       )}
 
       {/* Title Text on Hover */}

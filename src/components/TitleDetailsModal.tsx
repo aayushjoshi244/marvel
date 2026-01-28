@@ -8,20 +8,24 @@ type Props = {
   open: boolean;
   title: Title | null;
   isWatched: boolean;
-  isNext: boolean;
+  hasNext: boolean;
   onClose: () => void;
   onToggleWatched: () => void;
+  onGoNext: () => void;
 };
 
 export default function TitleDetailsModal({
   open,
   title,
   isWatched,
-  isNext,
+  hasNext,
   onClose,
   onToggleWatched,
+  onGoNext,
 }: Props) {
   if (!open || !title) return null;
+
+  const watchLinks = title.watchUrl ?? [];
 
   return (
     <AnimatePresence>
@@ -82,9 +86,11 @@ export default function TitleDetailsModal({
                       .join(" • ")}
                   </p>
 
-                  {isNext && !isWatched && (
-                    <p className="mt-2 text-xs text-red-200">
-                      Next on your journey.
+                  {hasNext && (
+                    <p className="mt-2 text-xs text-white/60">
+                      {isWatched
+                        ? "Cleared. You can move to the next title."
+                        : "This is your next title. Watch it (or mark watched) to unlock Next."}
                     </p>
                   )}
                 </div>
@@ -103,16 +109,29 @@ export default function TitleDetailsModal({
                 </p>
               )}
 
+              {/* ACTIONS */}
               <div className="mt-6 flex flex-wrap gap-3">
-                {title.watchUrl && (
-                  <a
-                    href={title.watchUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500"
-                  >
-                    Watch here
-                  </a>
+                {watchLinks.length > 0 && (
+                  <>
+                    {watchLinks.map((link) => (
+                      <a
+                        key={link.url}
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onMouseDown={() => {
+                          if (!isWatched) onToggleWatched();
+                        }}
+                        onTouchStart={() => {
+                          if (!isWatched) onToggleWatched();
+                        }}
+                        className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/25 transition hover:bg-red-500"
+                      >
+                        {isWatched ? "Watch again" : "Watch"}
+                        {link.label ? ` on ${link.label}` : ""}
+                      </a>
+                    ))}
+                  </>
                 )}
 
                 {title.trailerUrl && (
@@ -132,6 +151,30 @@ export default function TitleDetailsModal({
                 >
                   {isWatched ? "Unmark watched" : "Mark as watched"}
                 </button>
+
+                {/* CONTINUE JOURNEY */}
+                {/* NEXT (strict) */}
+                {hasNext && (
+                  <button
+                    onClick={() => {
+                      // strict: must be watched before moving on
+                      if (!isWatched) return;
+
+                      onGoNext();
+                      // keep modal open; JourneyMap will swap selected to next
+                      // (do NOT close here)
+                    }}
+                    disabled={!isWatched}
+                    className={`rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-lg transition
+                        ${
+                          isWatched
+                            ? "bg-emerald-600 shadow-emerald-600/25 hover:bg-emerald-500"
+                            : "bg-white/10 text-white/40 shadow-none cursor-not-allowed"
+                        }`}
+                  >
+                    Next →
+                  </button>
+                )}
               </div>
 
               <div className="mt-5 text-xs text-white/50">
