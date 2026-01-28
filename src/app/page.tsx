@@ -113,8 +113,8 @@ export default function Home() {
           {/* right-side “mini poster stack” */}
           <CinematicCardStack
             items={[
-              { src: "/posters/the-avengers-2012.jpg", alt: "The Avengers" },
-              { src: "/posters/iron-man-2008.jpg", alt: "Iron Man" },
+              { src: "/universe/dc.jpg", alt: "DC" },
+              { src: "/universe/anime.jpg", alt: "Anime" },
               { src: "/posters/blade-1998.jpg", alt: "Blade" },
             ]}
           />

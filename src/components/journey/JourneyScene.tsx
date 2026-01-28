@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { type Title } from "@/data/titles";
 import { PHASES, type PhaseSection } from "@/data/phases";
 
+import DoomsdayReveal from "@/components/DoomsdayReveal";
 import { NebulaBackground } from "./NebulaBackground";
 import { CosmicPath, CosmicPathGlow } from "./CosmicPath";
 import { MovieNode } from "./MovieNode";
@@ -173,6 +174,7 @@ export default function JourneyScene(props: JourneySceneProps) {
     const heightStep = 5;
     const angleStep = 0.6;
     const phaseGap = 30;
+    
 
     let currentZ = 0;
     let currentAngle = 0;
