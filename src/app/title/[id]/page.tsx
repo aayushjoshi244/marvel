@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { titles } from "@/data/titles";
+import BackButton from "@/components/BackButton";
 
 function toYouTubeEmbed(url: string) {
   try {
@@ -23,7 +24,7 @@ export default async function TitlePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const { id } = await params; // ✅ unwrap Promise
 
   const t = titles.find((x) => x.id === id);
   if (!t) return notFound();
@@ -32,7 +33,21 @@ export default async function TitlePage({
 
   return (
     <main className="min-h-screen bg-black text-white">
+      <div className="mx-auto max-w-6xl px-6 pt-6">
+        <BackButton
+          fallbackHref="/timeline"
+          className="
+            inline-flex items-center gap-2
+            rounded-full border border-white/10
+            bg-white/5 px-4 py-2
+            text-sm text-white/80
+            hover:bg-white/10 transition
+          "
+        />
+      </div>
+
       <div className="mx-auto max-w-6xl px-6 py-10">
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-semibold tracking-tight">{t.name}</h1>
           <p className="mt-2 text-white/60">
@@ -42,6 +57,7 @@ export default async function TitlePage({
         </div>
 
         <div className="grid gap-8 md:grid-cols-[320px_1fr]">
+          {/* Poster */}
           <div className="w-full">
             <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
               <Image
@@ -54,6 +70,7 @@ export default async function TitlePage({
               />
             </div>
 
+            {/* Watch links */}
             {t.watchUrl?.length ? (
               <div className="mt-4 space-y-2">
                 <p className="text-sm text-white/60">Watch on</p>
@@ -74,6 +91,7 @@ export default async function TitlePage({
             ) : null}
           </div>
 
+          {/* Details */}
           <div>
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <h2 className="text-lg font-semibold">Synopsis</h2>
