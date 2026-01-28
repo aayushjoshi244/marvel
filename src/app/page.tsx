@@ -76,7 +76,7 @@ export default function Home() {
                 href="/timeline"
                 className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-500"
               >
-                Start Timeline
+                The Timeline
               </Link>
 
               <Link
