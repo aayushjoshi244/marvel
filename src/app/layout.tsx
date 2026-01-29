@@ -6,6 +6,7 @@ import SoundToggle from "@/components/SoundToggle";
 import CommandPalette from "@/components/CommandPalette";
 import WatchedHydrator from "@/components/WatchedHydrator";
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
           <CommandPalette />
         </SoundProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
